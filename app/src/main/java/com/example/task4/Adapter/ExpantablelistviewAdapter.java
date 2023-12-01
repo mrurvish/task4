@@ -1,4 +1,4 @@
-package com.example.task4;
+package com.example.task4.Adapter;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -8,6 +8,8 @@ import android.widget.BaseExpandableListAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.example.task4.R;
+
 import java.util.HashMap;
 import java.util.List;
 
@@ -16,9 +18,9 @@ public class ExpantablelistviewAdapter extends BaseExpandableListAdapter {
 
     ImageView indicator;
     private Context context;
-    private HashMap<String,List<String>> topiclist;
+    private HashMap<String, List<String>> topiclist;
 
-    public ExpantablelistviewAdapter( Context context,List<String> chapter, HashMap<String, List<String>> topiclist) {
+    public ExpantablelistviewAdapter(Context context, List<String> chapter, HashMap<String, List<String>> topiclist) {
         this.chapter = chapter;
         this.context = context;
         this.topiclist = topiclist;
@@ -31,8 +33,8 @@ public class ExpantablelistviewAdapter extends BaseExpandableListAdapter {
 
     @Override
     public int getChildrenCount(int groupPosition) {
-        if (topiclist.get(chapter.get(groupPosition))==null)
-        return 0;
+        if (topiclist.get(chapter.get(groupPosition)) == null)
+            return 0;
         else
             return this.topiclist.get(this.chapter.get(groupPosition)).size();
     }
@@ -66,17 +68,18 @@ public class ExpantablelistviewAdapter extends BaseExpandableListAdapter {
     public View getGroupView(int groupPosition, boolean isExpanded, View convertView, ViewGroup parent) {
         String titel = (String) getGroup(groupPosition);
 
-        if (convertView==null){
-            convertView = LayoutInflater.from(context).inflate(R.layout.group,null);
-             indicator = convertView.findViewById(R.id.groupIndicator);
-            indicator.setImageResource(isExpanded ? R.drawable.baseline_keyboard_arrow_up_24:R.drawable.baseline_keyboard_arrow_down_24);
+        if (convertView == null) {
+            convertView = LayoutInflater.from(context).inflate(R.layout.group, null);
+
 
         }
-        TextView textTitle= (TextView) convertView.findViewById(R.id.listTitle);
+        indicator = convertView.findViewById(R.id.groupIndicator);
+        indicator.setImageResource(isExpanded ? R.drawable.baseline_keyboard_arrow_up_24 : R.drawable.baseline_keyboard_arrow_down_24);
+        TextView textTitle = (TextView) convertView.findViewById(R.id.listTitle);
         textTitle.setText(titel);
-       List<String> check =  topiclist.get(this.chapter.get(groupPosition));
+        List<String> check = topiclist.get(this.chapter.get(groupPosition));
 
-        if (check != null) {
+        if ( check != null) {
             // Hide the indicator for the first group
             indicator.setVisibility(View.VISIBLE);
         } else {
@@ -84,9 +87,9 @@ public class ExpantablelistviewAdapter extends BaseExpandableListAdapter {
             indicator.setVisibility(View.GONE);
         }
 
-        return convertView;
-    }
 
+        return convertView;
+}
     @Override
     public View getChildView(int groupPosition, int childPosition, boolean isLastChild, View convertView, ViewGroup parent) {
         String titel = (String) getChild(groupPosition,childPosition);

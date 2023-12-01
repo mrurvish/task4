@@ -1,5 +1,10 @@
 <resources>
-    <string name="app_name">task4</string>
+    <string name="app_name">Taxi</string>
     <string name="nav_open">Open\n</string>
     <string name="nav_close">Close\n</string>
+    <string name="Api_key">AIzaSyB9hANxw1_g5l9dax0y0-Q6M6R3EKqpwgA</string>
+    <string name="chose_locations">Chose Locations.....</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="base_url">http://192.168.0.215:3000/</string>
 </resources>
