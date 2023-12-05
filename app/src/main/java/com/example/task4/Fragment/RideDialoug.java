@@ -11,43 +11,69 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
-import android.view.inputmethod.EditorInfo;
-import android.widget.AutoCompleteTextView;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.content.ContextCompat;
 import androidx.fragment.app.DialogFragment;
 
 import com.example.task4.DataModels.RidesRespons;
+import com.example.task4.Preference.SharedPreferencesManager;
 import com.example.task4.R;
 import com.squareup.picasso.Picasso;
 
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+
+import io.socket.client.IO;
+import io.socket.client.Socket;
+import io.socket.emitter.Emitter;
 
 public class RideDialoug extends  DialogFragment {
     List<RidesRespons.Ride> rides;
     int position;
     ImageView profile;
     LinearLayout layout;
+    SharedPreferencesManager manager;
+    String token;
+    Button btn;
     TextView txt_name,txt_phone,txt_email,txt_pickup,txt_dropoff,txt_etime,txt_edist,txt_time,txt_date,txt_price,txt_servicetype;
+  Socket socket;
 
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view =inflater.inflate(R.layout.ride_dialoug,container,false);
+        try {
+            socket = IO.socket("http://192.168.0.215:3000");
+            socket.connect();
+            socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
+                @Override
+                public void call(Object... args) {
+                    // This will be called when the socket is connected
+
+                    showToast("Socket connected");
+
+                }
+            });
+
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
+
         txt_name=view.findViewById(R.id.txt_user_name_d);
         txt_phone = view.findViewById(R.id.txt_user_phone_d);
         txt_email=view.findViewById(R.id.txt_user_email_d);
-        txt_pickup = view.findViewById(R.id.txt_pickup_d);
+        txt_pickup = view.findViewById(R.id.txt_pickup_rr);
         txt_dropoff = view.findViewById(R.id.txt_dropoff_d);
         txt_etime = view.findViewById(R.id.txt_etime_d);
         txt_edist = view.findViewById(R.id.txt_edistance_d);
@@ -57,9 +83,11 @@ public class RideDialoug extends  DialogFragment {
         txt_servicetype = view.findViewById(R.id.txt_service_d);
         profile =  view.findViewById(R.id.profile_pic_d);
         layout = view.findViewById(R.id.linearlayout_stops);
-
+        btn = view.findViewById(R.id.btn_confirm);
+        manager = new SharedPreferencesManager(requireActivity());
         if(rides!=null)
         {
+
             RidesRespons.Ride currentride = rides.get(position);
             txt_name.setText(currentride.user.getName());
             txt_phone.setText(currentride.user.getPhoneCode().toString()+" "+rides.get(position).user.getPhone().toString());
@@ -78,9 +106,28 @@ public class RideDialoug extends  DialogFragment {
                     .into(profile);
             rideStops();
         }
+        btn.setOnClickListener(view1 -> {
+
+        });
         return view;
     }
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        socket.disconnect();
+    }
+
+    private void showToast(String message) {
+        if (getActivity() != null) {
+            getActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+    }
     private void rideStops() {
 
         Geocoder geocoder = new Geocoder(requireActivity(), Locale.getDefault());

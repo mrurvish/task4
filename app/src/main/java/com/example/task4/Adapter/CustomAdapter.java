@@ -1,9 +1,12 @@
 package com.example.task4.Adapter;
 
 import android.content.Context;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -26,8 +29,21 @@ public class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.CustomView
         this.context = context;
         this.dataList = dataList;
     }
+
+    public void updatestatus(RidesRespons.Ride rideData) {
+        for(int i=0;i< dataList.size();i++)
+        {
+            if (dataList.get(i).rideId == rideData.rideId)
+            {
+                dataList.set(i,rideData);
+                notifyDataSetChanged();
+            }
+        }
+    }
+
     public interface OnItemClickListener {
         void onItemClick(int position);
+        void onAssignClick(int position);
     }
     public void setOnItemClickListener(OnItemClickListener listener) {
         this.clickListener = listener;
@@ -42,7 +58,9 @@ public class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.CustomView
         public final View mView;
 
         TextView txt_name,txt_requestid,txt_servicetype,txt_pickup,txt_dropoff,txt_date,txt_time,txt_price;
-        private ImageView coverImage;
+        private ImageView coverImage,btn_assign;
+        Button btn;
+
 
         CustomViewHolder(View itemView) {
             super(itemView);
@@ -52,12 +70,23 @@ public class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.CustomView
            txt_price = mView.findViewById(R.id.txt_price_rv);
            txt_requestid = mView.findViewById(R.id.txt_requestid_rv);
            txt_servicetype = mView.findViewById(R.id.txt_servicetype_rv);
-           txt_pickup = mView.findViewById(R.id.txt_pickup_d);
+           txt_pickup = mView.findViewById(R.id.txt_pickup_rr);
            txt_dropoff = mView.findViewById(R.id.txt_dropoff_d);
            coverImage = mView.findViewById(R.id.profile_pic_rv);
            txt_date = mView.findViewById(R.id.txt_date_rv);
            txt_time = mView.findViewById(R.id.txt_time_rv);
-
+            btn_assign=mView.findViewById(R.id.img_assign_rr);
+            btn = mView.findViewById(R.id.btn_rr);
+            btn_assign.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    int position = getAdapterPosition();
+                    if (position != RecyclerView.NO_POSITION) {
+                        // Call a method or perform an action based on the button click
+                      clickListener.onAssignClick(position);
+                    }
+                }
+            });
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -71,6 +100,8 @@ public class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.CustomView
             });
         }
     }
+
+
 
 
     @Override
@@ -91,6 +122,18 @@ public class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.CustomView
     holder.txt_price.setText("₹"+dataList.get(position).totalFare);
     holder.txt_time.setText(dataList.get(position).rideTime);
     holder.txt_date.setText(dataList.get(position).rideDate);
+    if (dataList.get(position).status == 1)
+    {
+        holder.btn.setText("Panding");
+        ColorStateList colorStateList = ColorStateList.valueOf(Color.LTGRAY);
+        holder.btn.setBackgroundTintList(colorStateList);
+    }
+    if (dataList.get(position).status == 2)
+    {
+        holder.btn.setText("Assigning");
+        ColorStateList colorStateList = ColorStateList.valueOf(Color.CYAN);
+        holder.btn.setBackgroundTintList(colorStateList);
+    }
     String path = "http://192.168.0.215:3000/" + dataList.get(position).user.getProfile();
 
     Picasso.get()

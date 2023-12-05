@@ -91,7 +91,10 @@ public class HomeActivity extends AppCompatActivity {
                break;
            case "Confirmed Rides":
                intent = new Intent(HomeActivity.this,ConfirmRides.class);
+           case "Ride History":
+               intent = new Intent(HomeActivity.this,RunningRequest.class);
            default:
+               intent =null;
                System.out.println("Invalid option!");
        }
        if (intent!=null) {

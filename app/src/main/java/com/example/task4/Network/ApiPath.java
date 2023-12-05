@@ -1,10 +1,10 @@
 package com.example.task4.Network;
 
-import com.example.task4.Activity.BookRide;
 import com.example.task4.DataModels.AllVehicals;
 import com.example.task4.DataModels.CityVihicals;
 import com.example.task4.DataModels.Country;
 import com.example.task4.DataModels.DirectionsResponse;
+import com.example.task4.DataModels.DriverDetails;
 import com.example.task4.DataModels.LocationZone;
 import com.example.task4.DataModels.Locationdata;
 import com.example.task4.DataModels.Login;
@@ -15,19 +15,16 @@ import com.example.task4.DataModels.Settings;
 import com.example.task4.DataModels.User;
 import com.example.task4.DataModels.UserCards;
 import com.example.task4.DataModels.UserPhone;
-import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.http.Body;
-import retrofit2.http.Field;
 import retrofit2.http.GET;
 import retrofit2.http.Header;
 import retrofit2.http.POST;
 import retrofit2.http.Path;
 import retrofit2.http.Query;
-import retrofit2.http.Url;
 
 public interface ApiPath {
     @POST("login")
@@ -50,7 +47,12 @@ public interface ApiPath {
     @POST("/card")
     Call<UserCards> getcards(@Header("Authorization") String token,@Body UserCards.Id id);
     @GET("/ride")
-    Call<RidesRespons> getallRides(@Header("Authorization") String token,@Query("page") String pagenum,@Query("search") String search,@Query("vehicalType") String vihical,@Query("rideDateFrom") String dateFrom,@Query("rideDateTo") String dateto,@Query("status") String status);
+    Call<RidesRespons> searchrides(@Header("Authorization") String token,@Query("page") String pagenum,@Query("search") String search,@Query("vehicleType") String vihical,@Query("rideDateFrom") String dateFrom,@Query("rideDateTo") String dateto,@Query("status") String status);
+    @GET("/ride")
+    Call<RidesRespons> getallrides(@Header("Authorization") String token,@Query("page") String pagenum,@Query("rideStatus") String dateto);
     @GET("/vehicle")
     Call<List<AllVehicals>> getAllVehicals(@Header("Authorization") String token);
+    @GET("/driver/ride")
+    Call<List<DriverDetails>> getAllDrivers(@Header("Authorization") String token,@Query("serviceTypeID") String servicetypeid,@Query("cityID") String cityid);
+
 }

@@ -131,7 +131,7 @@
             app:srcCompat="@drawable/pickup_location" />
 
         <TextView
-            android:id="@+id/txt_pickup_d"
+            android:id="@+id/txt_pickup_rr"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
 
@@ -261,5 +261,15 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:textSize="16sp" />
+
     </LinearLayout>
+
+    <Button
+        android:id="@+id/btn_confirm"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="Button"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/linearLayout6" />
 </androidx.constraintlayout.widget.ConstraintLayout>

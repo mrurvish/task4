@@ -7,33 +7,48 @@ import androidx.core.widget.NestedScrollView;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
+import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.task4.Adapter.CustomAdapter;
 import com.example.task4.DataModels.AllVehicals;
+import com.example.task4.DataModels.DriverDetails;
 import com.example.task4.DataModels.RidesRespons;
+import com.example.task4.Fragment.AssignDialoug;
 import com.example.task4.Fragment.BottomSheetFilters;
 import com.example.task4.Fragment.RideDialoug;
+import com.example.task4.Interface.AssignDialougListner;
 import com.example.task4.Interface.BottomsheetDialougListner;
 import com.example.task4.Network.ApiPath;
 import com.example.task4.Network.RetrofitClient;
 import com.example.task4.Preference.SharedPreferencesManager;
 import com.example.task4.R;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.socket.client.IO;
+import io.socket.client.Socket;
+import io.socket.emitter.Emitter;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class ConfirmRides extends AppCompatActivity implements BottomsheetDialougListner {
+public class ConfirmRides extends AppCompatActivity implements BottomsheetDialougListner, AssignDialougListner {
     SharedPreferencesManager manager;
     RecyclerView recyclerview;
    Toolbar toolbar;
@@ -49,18 +64,53 @@ public class ConfirmRides extends AppCompatActivity implements BottomsheetDialou
     NestedScrollView nestedSV;
     String searchtext="",servicetype="",from="",to="",status="";
     List<AllVehicals> vehicals;
+    LinearLayout filter_list;
+   Socket socket;
+    String TAG = "soket";
 
     int limit;
     String token;
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        socket.disconnect();
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_confirm_rides);
-        recyclerview = findViewById(R.id.recyclerview);
+
+        try {
+            socket = IO.socket("http://192.168.0.215:3000");
+            socket.connect();
+            socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
+                @Override
+                public void call(Object... args) {
+                    // This will be called when the socket is connected
+
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(ConfirmRides.this, "Socket is connected..", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+
+                }
+            });
+
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
+
+
+            recyclerview = findViewById(R.id.recyclerview);
         manager = new SharedPreferencesManager(this);
         ridelist = new ArrayList<>();
         toolbar = findViewById(R.id.toolbarconfirm);
         filter = findViewById(R.id.image_filter);
+        filter_list= findViewById(R.id.filter_list);
         Menu menu = toolbar.getMenu();
         MenuItem searchItem = menu.findItem(R.id.app_bar_search);
 
@@ -71,7 +121,7 @@ public class ConfirmRides extends AppCompatActivity implements BottomsheetDialou
                 filteredlist.clear();
                 searchpage=1;
                 searchtext = query;
-                getallRequests(searchpage,token,query,servicetype,status,to,from);
+                getsearchrequest(searchpage,token,query,servicetype,status,to,from);
                 return false;
             }
 
@@ -84,6 +134,7 @@ public class ConfirmRides extends AppCompatActivity implements BottomsheetDialou
 
         });
         search.setOnCloseListener(new SearchView.OnCloseListener() {
+
             @Override
             public boolean onClose() {
                 // Perform your action when the close button is pressed
@@ -91,16 +142,16 @@ public class ConfirmRides extends AppCompatActivity implements BottomsheetDialou
                 searchtext = "";
                 if (servicetype.isEmpty()&&status.isEmpty()&&to.isEmpty()&&from.isEmpty())
                 {
-                if (pagenum < rideresponse.pageCount) {
+                if (pagenum < totelpage) {
                     filteredlist.clear();
-                    searchpage=1;
+
                         pagenum++;
-                        getallRequests(pagenum, token, "", "", "", "", "");
+                        getallRequests(pagenum, token);
 
                 }}else {
                     filteredlist.clear();
                     searchpage=1;
-                    getallRequests(pagenum, token, searchtext, servicetype, status, to, from);
+                    getsearchrequest(pagenum, token, searchtext, servicetype, status, to, from);
                 }
                 // Return true if you want to consume the event, false otherwise
                 return false;
@@ -116,7 +167,7 @@ public class ConfirmRides extends AppCompatActivity implements BottomsheetDialou
          token = manager.getToken();
         if (!token.isEmpty()) {
             getvehicals(token);
-            getallRequests(pagenum,token, "", "", "", "", "");
+            getallRequests(pagenum,token);
         }
 
         recyclerview.setOnScrollChangeListener(new View.OnScrollChangeListener() {
@@ -124,21 +175,26 @@ public class ConfirmRides extends AppCompatActivity implements BottomsheetDialou
             public void onScrollChange(View view, int i, int i1, int i2, int i3) {
                 boolean val=view.canScrollVertically(1);
                 if(searchtext.isEmpty()&&servicetype.isEmpty()&&status.isEmpty()&&to.isEmpty()&&from.isEmpty()) {
-                    if (pagenum < rideresponse.pageCount) {
+                    if (pagenum < totelpage) {
                         if (!val) {
                             pagenum++;
-                            getallRequests(pagenum, token, "", "", "", "", "");
+                            getallRequests(pagenum, token);
                         }
                     }
-                }else {if (searchpage < rideresponse.pageCount) {
+                }else {
+
+                    if (searchpage < totelfilterpage) {
                         if (!val) {
                             searchpage++;
-                            getallRequests(searchpage, token, searchtext, servicetype, status, to, from);
+                            getsearchrequest(searchpage, token, searchtext, servicetype, status, to, from);
                         }
                     }
                 }
             }
         });
+
+
+        //listning to socket
 
 
     }
@@ -172,52 +228,25 @@ public class ConfirmRides extends AppCompatActivity implements BottomsheetDialou
         }
     }*/
 
-    public void getallRequests(int page, String token,String searchstring,String vehicalstring, String statusstring, String dateto, String datefrom )
+    public void getsearchrequest(int page, String token,String searchstring,String vehicalstring, String statusstring, String dateto, String datefrom )
     {
         String modifiedtoken = "Bearer " + token;
 
         ApiPath path = RetrofitClient.getRetrofitInstance().create(ApiPath.class);
-        Call<RidesRespons> call = path.getallRides(modifiedtoken,String.valueOf(page),searchstring,vehicalstring,datefrom,dateto,statusstring);
+        Call<RidesRespons> call = path.searchrides(modifiedtoken,String.valueOf(page),searchstring,vehicalstring,datefrom,dateto,statusstring);
         call.enqueue(new Callback<RidesRespons>() {
             @Override
             public void onResponse(Call<RidesRespons> call, Response<RidesRespons> response) {
-                rideresponse = response.body();
-                responselist.add(rideresponse);
-                if (adapter==null) {
-                    adapter = new CustomAdapter(ConfirmRides.this, ridelist);
-                    recyclerview.setLayoutManager(new LinearLayoutManager(ConfirmRides.this));
-                    recyclerview.setAdapter(adapter);
-                    adapter.setOnItemClickListener(new CustomAdapter.OnItemClickListener() {
-                        @Override
-                        public void onItemClick(int position) {
-                            openCustomDialog(position);
-
-                        }
-                    });
-
-                }else {
+                if (response.isSuccessful()) {
+                    rideresponse = response.body();
+                    totelfilterpage = response.body().pageCount;
+                    filteredlist.addAll(response.body().rides);
+                    adapter.filterlist(filteredlist);
                     adapter.notifyDataSetChanged();
-                }
-                if (searchstring.isEmpty()&&vehicalstring.isEmpty()&&statusstring.isEmpty()&&datefrom.isEmpty()&&dateto.isEmpty()) {
-                    if (rideresponse != null && rideresponse.rides != null) {
-                        totelpage=response.body().pageCount;
-                        // Add the new rides to the existing list
-                        ridelist.addAll(rideresponse.rides);
-                        adapter.filterlist(ridelist);
-                    }
                 }else {
-                    if (rideresponse != null && rideresponse.rides != null) {
-                        totelfilterpage = response.body().pageCount;
-                        // Add the new rides to the existing list
-                        filteredlist.addAll(rideresponse.rides);
-                        adapter.filterlist(filteredlist);
-                    }
+                    Toast.makeText(ConfirmRides.this, "No rides found", Toast.LENGTH_SHORT).show();
                 }
-
-
             //adapter.notifyDataSetChanged();
-
-
             }
 
             @Override
@@ -226,10 +255,71 @@ public class ConfirmRides extends AppCompatActivity implements BottomsheetDialou
             }
         });
     }
+    public  void getallRequests(int page,String token){
+        String modifiedtoken = "Bearer " + token;
+        filteredlist = new ArrayList<>();
+        ApiPath path = RetrofitClient.getRetrofitInstance().create(ApiPath.class);
+        String status = "[1,2,3,4,5,6]";
+        Call<RidesRespons> call = path.getallrides(modifiedtoken,String.valueOf(page),status);
+        call.enqueue(new Callback<RidesRespons>() {
+            @Override
+            public void onResponse(Call<RidesRespons> call, Response<RidesRespons> response) {
+                if (response.isSuccessful()) {
+                    rideresponse = response.body();
+                    totelpage = response.body().pageCount;
+                    // Add the new rides to the existing list
+                    ridelist.addAll(response.body().rides);
+                    if (adapter == null) {
+                        adapter = new CustomAdapter(ConfirmRides.this, ridelist);
+                        recyclerview.setLayoutManager(new LinearLayoutManager(ConfirmRides.this));
+                        recyclerview.setAdapter(adapter);
+                        adapter.setOnItemClickListener(new CustomAdapter.OnItemClickListener() {
+                            @Override
+                            public void onItemClick(int position) {
+                                openCustomDialog(position);
+
+                            }
+
+                            @Override
+                            public void onAssignClick(int position) {
+                               openAssignDialoug(position);
+                            }
+                        });
+
+                    } else {
+                        adapter.filterlist(ridelist);
+                        adapter.notifyDataSetChanged();
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<RidesRespons> call, Throwable t) {
+
+            }
+        });
+    }
+
+    private void openAssignDialoug(int position) {
+        AssignDialoug assignDialoug = new AssignDialoug();
+        assignDialoug.setAssignListner(this);
+        if(searchtext.isEmpty()&&servicetype.isEmpty()&&status.isEmpty()&&to.isEmpty()&&from.isEmpty()) {
+            assignDialoug.setcustomedata(ridelist, position);
+        }
+        else {
+            assignDialoug.setcustomedata(filteredlist,position);
+        }
+        assignDialoug.show(getSupportFragmentManager(),"assign");
+    }
+
     private void openCustomDialog(int position) {
         RideDialoug customDialogFragment = new RideDialoug();
-        customDialogFragment.setcustomedata(ridelist,position);
-
+        if(searchtext.isEmpty()&&servicetype.isEmpty()&&status.isEmpty()&&to.isEmpty()&&from.isEmpty()) {
+            customDialogFragment.setcustomedata(ridelist, position);
+        }
+        else {
+            customDialogFragment.setcustomedata(filteredlist,position);
+        }
         customDialogFragment.show(getSupportFragmentManager(), "CustomDialogFragment");
     }
     public void getvehicals(String token){
@@ -252,13 +342,242 @@ public class ConfirmRides extends AppCompatActivity implements BottomsheetDialou
             }
         });
     }
+    @Override
+    public void onDriverreceived(RidesRespons.Ride ride, DriverDetails Driver) {
+        DriverDetails.Combined combined = new DriverDetails.Combined(ride,Driver);
+        Object obj = combined;
+        Gson gson = new Gson();
+        JsonObject rideobj = gson.toJsonTree(ride).getAsJsonObject();
+        JsonObject driverobj = gson.toJsonTree(Driver).getAsJsonObject();
+        JsonObject combinedObj = new JsonObject();
+        combinedObj.add("ride",rideobj);
+        combinedObj.add("driver",driverobj);
 
+        socket.emit("assignToSelectedDriver",combinedObj);
+        socket.on("error", new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                runOnUiThread(() -> Toast.makeText(ConfirmRides.this, args.toString(), Toast.LENGTH_SHORT).show());
+
+            }
+        });
+        socket.on("rideAssigned", new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                runOnUiThread(() -> {
+                    String json= args[0].toString();
+                    Gson gson = new Gson();
+                    RidesRespons.Ride rideData = gson.fromJson(json, RidesRespons.Ride.class);
+                    adapter.updatestatus(rideData);
+
+
+                    Toast.makeText(ConfirmRides.this,  args[0].toString(), Toast.LENGTH_SHORT).show();
+                });
+            }
+        });
+        //Toast.makeText(this, "called", Toast.LENGTH_SHORT).show();
+    }
     @Override
     public void onFilterRecived(String servicetype, String status, String from, String to) {
         this.servicetype = servicetype;
         this.status = status;
         this.to = to;
         this.from = from;
-        getallRequests(searchpage,token,searchtext,servicetype,status,to,from);
+        filteredlist = new ArrayList<>();
+        getsearchrequest(searchpage,token,searchtext,servicetype,status,to,from);
+filter_list.removeAllViews();
+       showfilter();
+
+
     }
+
+    private void showfilter() {
+        if (!servicetype.isEmpty())
+        {
+            LinearLayout linearLayout0 = new LinearLayout(ConfirmRides.this);
+            linearLayout0.setLayoutParams(new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT));
+            linearLayout0.setOrientation(LinearLayout.HORIZONTAL);
+            linearLayout0.setBackgroundResource(R.drawable.round_shape);
+            linearLayout0.setPadding(7,7,7,7);
+            linearLayout0.setGravity(Gravity.CENTER);
+            TextView tv = new TextView(ConfirmRides.this);
+
+            tv.setText(servicetype);
+            tv.setTextSize(TypedValue.COMPLEX_UNIT_SP,14);
+            LinearLayout.LayoutParams tvParams = new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+            );
+
+
+            tv.setLayoutParams(tvParams);
+            ImageView image = new ImageView(ConfirmRides.this);
+            image.setImageResource(R.drawable.ic_baseline_close_24);
+            LinearLayout.LayoutParams imageParams = new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+            );
+            imageParams.gravity = Gravity.CENTER_VERTICAL;
+            imageParams.setMargins(25, 0, 0, 0); // left, top, right, bottom margins
+            image.setLayoutParams(imageParams);
+            linearLayout0.addView(tv,0);
+            linearLayout0.addView(image,1);
+            filter_list.addView(linearLayout0);
+            image.setOnClickListener(view -> {
+                filter_list.removeView(linearLayout0);
+                servicetype="";
+                if (status.isEmpty()&&from.isEmpty()&&to.isEmpty())
+                {
+                    getallRequests(pagenum,token);
+                }else {
+                    searchpage=1;
+                    filteredlist=new ArrayList<>();
+                    getsearchrequest(searchpage, token, searchtext, servicetype, status, to, from);
+                }
+            });
+        }
+        if (!status.isEmpty())
+        {
+            LinearLayout linearLayout0 = new LinearLayout(ConfirmRides.this);
+            linearLayout0.setLayoutParams(new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT));
+            linearLayout0.setOrientation(LinearLayout.HORIZONTAL);
+            linearLayout0.setBackgroundResource(R.drawable.round_shape);
+            linearLayout0.setPadding(7,7,7,7);
+            linearLayout0.setGravity(Gravity.CENTER);
+            TextView tv = new TextView(ConfirmRides.this);
+
+            tv.setText(status);
+            tv.setTextSize(TypedValue.COMPLEX_UNIT_SP,14);
+            LinearLayout.LayoutParams tvParams = new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+            );
+
+            tv.setLayoutParams(tvParams);
+            ImageView image = new ImageView(ConfirmRides.this);
+            image.setImageResource(R.drawable.ic_baseline_close_24);
+            LinearLayout.LayoutParams imageParams = new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+            );
+            imageParams.gravity = Gravity.CENTER_VERTICAL;
+            imageParams.setMargins(25, 0, 0, 0); // left, top, right, bottom margins
+            image.setLayoutParams(imageParams);
+            linearLayout0.addView(tv,0);
+            linearLayout0.addView(image,1);
+            filter_list.addView(linearLayout0);
+            image.setOnClickListener(view -> {
+                filter_list.removeView(linearLayout0);
+                status="";
+                if (servicetype.isEmpty()&&from.isEmpty()&&to.isEmpty()){
+                    getallRequests(pagenum,token);
+                }else {
+                    searchpage=1;
+                    filteredlist=new ArrayList<>();
+                    getsearchrequest(searchpage,token,searchtext,servicetype,status,to,from);
+                }
+
+            });
+
+        }
+        if (!from.isEmpty())
+        {
+            LinearLayout linearLayout0 = new LinearLayout(ConfirmRides.this);
+            linearLayout0.setLayoutParams(new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT));
+            linearLayout0.setOrientation(LinearLayout.HORIZONTAL);
+            linearLayout0.setBackgroundResource(R.drawable.round_shape);
+            linearLayout0.setPadding(7,7,7,7);
+            linearLayout0.setGravity(Gravity.CENTER);
+            TextView tv = new TextView(ConfirmRides.this);
+
+            tv.setText("From:"+from);
+            tv.setTextSize(TypedValue.COMPLEX_UNIT_SP,14);
+            LinearLayout.LayoutParams tvParams = new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+            );
+
+            tv.setLayoutParams(tvParams);
+            ImageView image = new ImageView(ConfirmRides.this);
+            image.setImageResource(R.drawable.ic_baseline_close_24);
+            LinearLayout.LayoutParams imageParams = new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+            );
+            imageParams.gravity = Gravity.CENTER_VERTICAL;
+            imageParams.setMargins(25, 0, 0, 0); // left, top, right, bottom margins
+            image.setLayoutParams(imageParams);
+            linearLayout0.addView(tv,0);
+            linearLayout0.addView(image,1);
+            filter_list.addView(linearLayout0);
+            image.setOnClickListener(view -> {
+                filter_list.removeView(linearLayout0);
+                from="";
+                to ="";
+                if (status.isEmpty()&&servicetype.isEmpty()){
+                    getallRequests(pagenum,token);
+                }else {
+                    searchpage=1;
+                    filteredlist=new ArrayList<>();
+                    getsearchrequest(searchpage,token,searchtext,servicetype,status,to,from);
+                }
+
+            });
+        }
+        if (!from.isEmpty()&&!to.isEmpty())
+        {
+            LinearLayout linearLayout0 = new LinearLayout(ConfirmRides.this);
+            linearLayout0.setLayoutParams(new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT));
+            linearLayout0.setOrientation(LinearLayout.HORIZONTAL);
+            linearLayout0.setBackgroundResource(R.drawable.round_shape);
+            linearLayout0.setPadding(7,7,7,7);
+            linearLayout0.setGravity(Gravity.CENTER);
+            TextView tv = new TextView(ConfirmRides.this);
+
+            tv.setText("To:"+to);
+            tv.setTextSize(TypedValue.COMPLEX_UNIT_SP,14);
+            LinearLayout.LayoutParams tvParams = new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+            );
+
+            tv.setLayoutParams(tvParams);
+            ImageView image = new ImageView(ConfirmRides.this);
+            image.setImageResource(R.drawable.ic_baseline_close_24);
+            LinearLayout.LayoutParams imageParams = new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+            );
+            imageParams.gravity = Gravity.CENTER_VERTICAL;
+            imageParams.setMargins(25, 0, 0, 0); // left, top, right, bottom margins
+            image.setLayoutParams(imageParams);
+            linearLayout0.addView(tv,0);
+            linearLayout0.addView(image,1);
+            filter_list.addView(linearLayout0);
+            image.setOnClickListener(view -> {
+                filter_list.removeView(linearLayout0);
+
+                to ="";
+                if (status.isEmpty()&&servicetype.isEmpty()&&from.isEmpty()){
+                    getallRequests(pagenum,token);
+                }else {
+                    searchpage=1;
+                    filteredlist=new ArrayList<>();
+                    getsearchrequest(searchpage,token,searchtext,servicetype,status,to,from);
+                }
+
+            });
+        }
+
+    }
+
+
 }
