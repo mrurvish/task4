@@ -7,63 +7,34 @@
     android:outlineAmbientShadowColor="#E80707"
     tools:context=".Activity.CreateRides">
 
-    <RelativeLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/relativeLayout"
-        android:layout_width="match_parent"
-        android:layout_height="346dp"
-        android:padding="40dp"
+        android:layout_width="0dp"
+        android:layout_height="376dp"
+        android:layout_margin="14dp"
+        android:background="@drawable/user_panel"
+        android:paddingLeft="7dp"
+        android:paddingTop="20dp"
+        android:paddingRight="7dp"
+        android:paddingBottom="20dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
-
-        <Spinner
-            android:id="@+id/spinner"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignTop="@+id/txt_num"
-            android:layout_alignBottom="@+id/txt_num"
-            android:layout_alignParentLeft="true"
-            android:backgroundTint="#1E48AD" />
-
-        <EditText
-            android:id="@+id/txt_num"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentTop="true"
-            android:layout_alignParentRight="true"
-            android:layout_toRightOf="@+id/spinner"
-            android:background="@android:drawable/editbox_background_normal"
-            android:ems="10"
-
-            android:inputType="number"
-            android:text="1111111111" />
-
-        <Button
-            android:id="@+id/btn_find_user"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/txt_num"
-            android:layout_centerHorizontal="true"
-            android:layout_marginTop="30dp"
-
-            android:elevation="500dp"
-            android:text="Find User"
-            android:textColor="#000000"
-            android:textColorHint="#000000" />
+        app:layout_constraintTop_toBottomOf="@+id/toolbar_createride">
 
         <LinearLayout
-            android:layout_width="312dp"
             android:id="@+id/user_card"
-            android:layout_height="70dp"
-            android:layout_below="@+id/btn_find_user"
-            android:layout_centerHorizontal="true"
-            android:background="@drawable/user_panel"
-            android:orientation="horizontal">
+            android:layout_width="358dp"
+            android:layout_height="87dp"
+            android:layout_marginTop="16dp"
+            android:orientation="horizontal"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/linearLayout14">
 
             <com.google.android.material.imageview.ShapeableImageView
                 android:id="@+id/profile_pic"
-                android:layout_width="73dp"
+                android:layout_width="87dp"
                 android:layout_height="match_parent"
                 android:paddingLeft="5dp"
 
@@ -85,6 +56,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
 
+                    android:layout_marginTop="4dp"
                     android:layout_marginBottom="3dp"
                     android:textColor="#040404"
                     android:textSize="18sp" />
@@ -104,7 +76,73 @@
             </LinearLayout>
         </LinearLayout>
 
-    </RelativeLayout>
+        <LinearLayout
+            android:id="@+id/linearLayout13"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <Spinner
+                android:id="@+id/spinner"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:backgroundTint="#1E48AD" />
+
+            <EditText
+                android:id="@+id/txt_num"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@android:drawable/editbox_background_normal"
+                android:ems="10"
+
+                android:inputType="number"
+                android:text="1111111111" />
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/btn_next_createride"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="15dp"
+            android:enabled="false"
+            android:text="Next"
+            android:textColor="#000000"
+            app:cornerRadius="7dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/user_card" />
+
+        <LinearLayout
+            android:id="@+id/linearLayout14"
+            android:layout_width="0dp"
+            android:layout_height="41dp"
+            android:layout_marginTop="20dp"
+            android:gravity="center|right"
+            android:orientation="horizontal"
+            app:layout_constraintEnd_toEndOf="@+id/linearLayout13"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toStartOf="@+id/linearLayout13"
+            app:layout_constraintTop_toBottomOf="@+id/linearLayout13">
+
+            <ImageView
+                android:id="@+id/btn_find_user"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginRight="10dp"
+                app:srcCompat="@drawable/person_search_24px" />
+
+            <ImageView
+                android:id="@+id/btn_cleare_user"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:srcCompat="@drawable/cancel_24px" />
+        </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <ProgressBar
         android:id="@+id/p_bar"
@@ -115,6 +153,17 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar_createride"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="?attr/colorPrimary"
+        android:minHeight="?attr/actionBarSize"
+        android:theme="?attr/actionBarTheme"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 

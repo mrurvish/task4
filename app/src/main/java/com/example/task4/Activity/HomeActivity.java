@@ -24,6 +24,7 @@ import java.util.List;
 public class HomeActivity extends AppCompatActivity {
     public DrawerLayout drawerLayout;
     private static final int MY_PERMISSIONS_REQUEST_LOCATION = 1;
+    private static final int MY_PERMISSIONS_REQUEST_STORAGE = 2;
     public ActionBarDrawerToggle actionBarDrawerToggle;
     public ExpantablelistviewAdapter adapter;
 
@@ -91,14 +92,21 @@ public class HomeActivity extends AppCompatActivity {
                break;
            case "Confirmed Rides":
                intent = new Intent(HomeActivity.this,ConfirmRides.class);
-           case "Ride History":
+               break;
+           case "Running request":
                intent = new Intent(HomeActivity.this,RunningRequest.class);
+               break;
+           case "Ride History":
+               intent = new Intent(HomeActivity.this,RideHistory.class);
+               break;
            default:
-               intent =null;
+               intent = null;
                System.out.println("Invalid option!");
+               break;
        }
        if (intent!=null) {
            startActivity(intent);
+
        }
     }
 
@@ -139,7 +147,10 @@ public class HomeActivity extends AppCompatActivity {
           ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, MY_PERMISSIONS_REQUEST_LOCATION);
           return false;
       }
+      if(ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED&&ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED){
       // Permission is already granted.
+          ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE,Manifest.permission.WRITE_EXTERNAL_STORAGE}, MY_PERMISSIONS_REQUEST_STORAGE);
+      }
       return true;
   }
 

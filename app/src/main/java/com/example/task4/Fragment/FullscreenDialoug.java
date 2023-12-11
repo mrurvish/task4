@@ -1,5 +1,7 @@
 package com.example.task4.Fragment;
 
+
+
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.Intent;
@@ -27,6 +29,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -43,6 +46,9 @@ import com.example.task4.Preference.SharedPreferencesManager;
 import com.example.task4.Network.ApiPath;
 import com.example.task4.Network.RetrofitClient;
 import com.example.task4.R;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapView;
+import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.libraries.places.api.Places;
 import com.google.android.libraries.places.api.model.AutocompleteSessionToken;
@@ -60,7 +66,7 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 
-public class FullscreenDialoug extends DialogFragment {
+public class FullscreenDialoug extends DialogFragment  {
 
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -80,12 +86,21 @@ public class FullscreenDialoug extends DialogFragment {
     Button btn_findrouts;
     int stopcount=0;
     private List<ImageView> imageViewList = new ArrayList<>();
+    private List<ImageView> imageViewListcancel = new ArrayList<>();
     private List<AutoCompleteTextView> autoCompleteTextViewList = new ArrayList<>();
+    List<LinearLayout> layouts= new ArrayList<>();
     private PlacesClient placesClient;
     PlaceAutocompleteAdapterNew adapter;
     CreatePref pref;
     private MyDialogListener mListener;
     LocationZone cityzone;
+    int index = 0;
+
+    String[] waypoint_array;
+    //map
+    private GoogleMap googleMap;
+    private MapView mapView;
+
 
 
 
@@ -97,7 +112,7 @@ public class FullscreenDialoug extends DialogFragment {
         toolbar = view.findViewById(R.id.toolbar);
         btn_add_stop = view.findViewById(R.id.add_stop);
        toolbar.setNavigationIcon(R.drawable.ic_baseline_close_24);
-       layout = view.findViewById(R.id.dialoug_layout);
+       layout = view.findViewById(R.id.layout_stops);
        pickuplayout = view.findViewById(R.id.pick_up_layout);
        text_pickup = view.findViewById(R.id.pick_up);
        btn_findrouts = view.findViewById(R.id.btn_getrouts);
@@ -106,6 +121,8 @@ public class FullscreenDialoug extends DialogFragment {
         btn_add_stop.setEnabled(false);
         text_dropoff.setEnabled(false);
         btn_findrouts.setEnabled(false);
+
+
 
        //initalizing place
         Places.initialize(requireActivity(), String.valueOf("AIzaSyBhiXFlGTlbp7A-EgMQFN4ke81_kefuOug"));
@@ -199,8 +216,7 @@ public class FullscreenDialoug extends DialogFragment {
                     ViewGroup.LayoutParams.MATCH_PARENT));
             linearLayout.setOrientation(LinearLayout.HORIZONTAL);
             //     linearLayout.setBackgroundColor(ContextCompat.getColor(requireActivity(), R.color.black));
-            int index = layout.indexOfChild(pickuplayout);
-            layout.addView(linearLayout, index + 1);
+
             ImageView image = new ImageView(requireActivity());
             image.setImageResource(R.drawable.stops);
             LinearLayout.LayoutParams imageParams = new LinearLayout.LayoutParams(
@@ -221,17 +237,55 @@ public class FullscreenDialoug extends DialogFragment {
             tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);
 
             LinearLayout.LayoutParams tvParams = new LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.WRAP_CONTENT
+                    0,
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    1f
             );
+
             tv.setLayoutParams(tvParams);
+            ImageView image1 = new ImageView(requireActivity());
+            image1.setImageResource(R.drawable.baseline_remove_circle_24);
+            LinearLayout.LayoutParams imageParams1 = new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+
+            );
+            imageParams1.gravity = Gravity.CENTER_VERTICAL;
+             // left, top, right, bottom margins
+            image1.setLayoutParams(imageParams1);
+            image1.setId(stopcount);
+
             linearLayout.addView(image);
             linearLayout.addView(tv);
+            linearLayout.addView(image1);
 
+            layout.addView(linearLayout, index);
+            index++;
             //  layout.addView(textstop);
             imageViewList.add(image);
+            imageViewListcancel.add(image1);
             autoCompleteTextViewList.add(tv);
-
+            layouts.add(linearLayout);
+            image1.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    int id = view.getId();
+                    layout.removeView(layouts.get(id));
+                    autoCompleteTextViewList.remove(id);
+                    imageViewList.remove(id);
+                    imageViewListcancel.remove(id);
+                    layouts.remove(id);
+                    for (int i=0;i<imageViewListcancel.size();i++)
+                    {
+                        imageViewListcancel.get(i).setId(i);
+                    }
+                    stopcount--;
+                    index--;
+                    if (stopcount < 3) {
+                        btn_add_stop.setVisibility(View.VISIBLE);
+                    }
+                }
+            });
             autoCompleteTextViewList.get(stopcount).setAdapter(adapter);
             autoCompleteTextViewList.get(stopcount).setOnItemClickListener(new AdapterView.OnItemClickListener() {
                 @Override
@@ -385,26 +439,33 @@ public class FullscreenDialoug extends DialogFragment {
     @NonNull
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
-        Dialog dialog = super.onCreateDialog(savedInstanceState);
+        Dialog dialog = new Dialog(requireContext());
         if (dialog.getWindow() != null) {
             dialog.getWindow().requestFeature(Window.FEATURE_NO_TITLE);
             dialog.getWindow().setBackgroundDrawableResource(android.R.color.white);
             dialog.getWindow().getAttributes().windowAnimations = R.style.DialogAnimation;
+
+
+            dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
             dialog.getWindow().setGravity(Gravity.TOP);
             dialog.setCanceledOnTouchOutside(false);
+
+
         }
         return dialog;
     }
     public void getdirections(String origin, String destination, List<AutoCompleteTextView> waypointlist)
     {
+        waypoint_array = new String[waypointlist.size()];
         String waypoints ="";
-        for (int i=waypointlist.size()-1;i>=0;i--)
+        for (int i=0;i<waypointlist.size();i++)
         {
-            if (i==waypointlist.size()-1) {
+            if (i==0) {
                 waypoints += waypointlist.get(i).getText().toString() ;
             }else {
                 waypoints+=  "|"+waypointlist.get(i).getText().toString();
             }
+            waypoint_array[i] = waypointlist.get(i).getText().toString();
         }
 
         Toast.makeText(requireActivity(), "getting routes", Toast.LENGTH_SHORT).show();
@@ -457,8 +518,10 @@ public class FullscreenDialoug extends DialogFragment {
     }
     private void sendDataToActivity(DirectionsResponse data,LocationZone city) {
         if (mListener != null) {
-            mListener.onDataReceived(data,cityzone);
+            mListener.onDataReceived(data,cityzone,waypoint_array);
             dismiss(); // Close the dialog after sending data
         }
     }
+
+
 }

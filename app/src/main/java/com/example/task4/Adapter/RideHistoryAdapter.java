@@ -13,7 +13,6 @@ import android.widget.Toast;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
-
 import com.example.task4.DataModels.RidesRespons;
 import com.example.task4.DataModels.Status;
 import com.example.task4.R;
@@ -21,13 +20,13 @@ import com.squareup.picasso.Picasso;
 
 import java.util.List;
 
-public class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.CustomViewHolder> {
+public class RideHistoryAdapter extends RecyclerView.Adapter<RideHistoryAdapter.CustomViewHolder> {
     private List<RidesRespons.Ride> dataList;
     private Context context;
-    private OnItemClickListener clickListener;
+    private RideHistoryAdapter.OnItemClickListener clickListener;
 
 
-    public CustomAdapter(Context context, List<RidesRespons.Ride> dataList) {
+    public RideHistoryAdapter(Context context, List<RidesRespons.Ride> dataList) {
         this.context = context;
         this.dataList = dataList;
     }
@@ -53,7 +52,7 @@ public class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.CustomView
         return dataList;
     }
 
-    public void setOnItemClickListener(OnItemClickListener listener) {
+    public void setOnItemClickListener(RideHistoryAdapter.OnItemClickListener listener) {
         this.clickListener = listener;
     }
 
@@ -63,14 +62,14 @@ public class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.CustomView
     }
 
     @Override
-    public CustomViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public RideHistoryAdapter.CustomViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         LayoutInflater layoutInflater = LayoutInflater.from(parent.getContext());
         View view = layoutInflater.inflate(R.layout.recyclerview_item, parent, false);
-        return new CustomViewHolder(view);
+        return new RideHistoryAdapter.CustomViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(CustomViewHolder holder, int position) {
+    public void onBindViewHolder(RideHistoryAdapter.CustomViewHolder holder, int position) {
 
         holder.txt_name.setText(dataList.get(position).user.getName());
         holder.txt_requestid.setText(String.valueOf(dataList.get(position).rideId));
@@ -91,44 +90,20 @@ public class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.CustomView
             holder.txt_driver.setVisibility(View.VISIBLE);
             holder.txt_driver.setText(dataList.get(position).driver.getName());
         }
-        if (dataList.get(position).status == 0) {
+        if (dataList.get(position).status == -1) {
             holder.btn.setText(Status.reversedServices.get(dataList.get(position).status));
-            ColorStateList colorStateList = ColorStateList.valueOf(ContextCompat.getColor(context,R.color.color0));
+            ColorStateList colorStateList = ColorStateList.valueOf(ContextCompat.getColor(context,R.color.color_1));
             holder.btn.setBackgroundTintList(colorStateList);
         }
-        if (dataList.get(position).status == 1) {
-            holder.btn_assign.setVisibility(View.VISIBLE);
-            holder.btn_cancel.setVisibility(View.VISIBLE);
-            holder.txt_driver.setVisibility(View.GONE);
+        if (dataList.get(position).status == 7) {
+
+
             holder.btn.setText(Status.reversedServices.get(dataList.get(position).status));
-            ColorStateList colorStateList = ColorStateList.valueOf(ContextCompat.getColor(context,R.color.color1));
+            ColorStateList colorStateList = ColorStateList.valueOf(ContextCompat.getColor(context,R.color.color7));
             holder.btn.setBackgroundTintList(colorStateList);
         }
-        if (dataList.get(position).status == 2) {
-            holder.btn.setText(Status.reversedServices.get(dataList.get(position).status));
-            ColorStateList colorStateList = ColorStateList.valueOf(ContextCompat.getColor(context,R.color.color2));
-            holder.btn.setBackgroundTintList(colorStateList);
-        }
-        if (dataList.get(position).status == 3) {
-            holder.btn.setText(Status.reversedServices.get(dataList.get(position).status));
-            ColorStateList colorStateList = ColorStateList.valueOf(ContextCompat.getColor(context,R.color.color3));
-            holder.btn.setBackgroundTintList(colorStateList);
-        }
-        if (dataList.get(position).status == 4) {
-            holder.btn.setText(Status.reversedServices.get(dataList.get(position).status));
-            ColorStateList colorStateList = ColorStateList.valueOf(ContextCompat.getColor(context,R.color.color4));
-            holder.btn.setBackgroundTintList(colorStateList);
-        }
-        if (dataList.get(position).status == 5) {
-            holder.btn.setText(Status.reversedServices.get(dataList.get(position).status));
-            ColorStateList colorStateList = ColorStateList.valueOf(ContextCompat.getColor(context,R.color.color5));
-            holder.btn.setBackgroundTintList(colorStateList);
-        }
-        if (dataList.get(position).status == 6) {
-            holder.btn.setText(Status.reversedServices.get(dataList.get(position).status));
-            ColorStateList colorStateList = ColorStateList.valueOf(ContextCompat.getColor(context,R.color.color6));
-            holder.btn.setBackgroundTintList(colorStateList);
-        }
+
+
         String path = "http://192.168.0.215:3000/" + dataList.get(position).user.getProfile();
 
         Picasso.get()

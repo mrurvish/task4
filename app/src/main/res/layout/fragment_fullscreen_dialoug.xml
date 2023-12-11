@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/dialoug_layout"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
     android:orientation="vertical">
 
     <!-- Your dialog content goes here -->
@@ -33,16 +33,24 @@
 
         <AutoCompleteTextView
             android:id="@+id/pick_up"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:background="@android:drawable/editbox_background_normal"
+            android:layout_weight="1"
 
+            android:background="@android:drawable/editbox_background_normal"
             android:hint="Add Pick up point"
             android:imeOptions="actionSearch"
             android:singleLine="true"
             android:textColor="@color/black"
             android:textSize="18sp" />
+
     </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/layout_stops"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"></LinearLayout>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/add_stop"
@@ -81,6 +89,12 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="right"
-        android:clickable="false"
-        android:text="Get routs" />
+        android:layout_marginTop="6dp"
+        android:layout_marginBottom="10dp"
+        android:text="Get Routs"
+        android:textColor="#090909"
+        app:icon="@drawable/map_24px"
+        app:iconPadding="5dp"
+        app:iconTint="#000000" />
+
 </LinearLayout>

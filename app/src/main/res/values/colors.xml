@@ -5,5 +5,14 @@
     <color name="yello">#FCE622</color>
     <color name="liteyello">#FFF27F</color>
     <color name="litebackground">#F9FCDB</color>
+    <color name="color_1">#F5454B</color>
+    <color name="color0">#778EFB</color>
+    <color name="color1">#E7B1FB</color>
+    <color name="color2">#E86CCB</color>
+    <color name="color3">#50D7F2</color>
+    <color name="color4">#5EF8C5</color>
+    <color name="color5">#F5BF79</color>
+    <color name="color6">#55D3E3</color>
+    <color name="color7">#6BFE44</color>
 
 </resources>

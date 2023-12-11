@@ -13,6 +13,10 @@ public class RidesRespons {
 
     @SerializedName("rides")
     public List<Ride> rides;
+    @SerializedName("ride")
+    public Ride ride;
+
+
 
     public static class Ride {
         @SerializedName("_id")
@@ -98,6 +102,8 @@ public class RidesRespons {
 
         @SerializedName("driver")
         public DriverDetails driver;
+        @SerializedName("message")
+        public String message;
 
         public static class Stop {
             @SerializedName("lat")

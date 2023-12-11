@@ -7,7 +7,7 @@
     tools:context=".Activity.BookRide">
 
     <androidx.appcompat.widget.Toolbar
-        android:id="@+id/toolbar3"
+        android:id="@+id/toolbar_bookride"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="?attr/colorPrimary"
@@ -38,7 +38,7 @@
         android:textSize="16sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/toolbar3" />
+        app:layout_constraintTop_toBottomOf="@+id/toolbar_bookride" />
 
     <TextView
         android:id="@+id/textView5"
@@ -165,7 +165,7 @@
             android:textSize="16sp" />
 
         <TextView
-            android:id="@+id/textView18"
+            android:id="@+id/txt_date_chose"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -182,7 +182,7 @@
             android:textSize="16sp" />
 
         <TextView
-            android:id="@+id/textView20"
+            android:id="@+id/txt_time_chose"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"

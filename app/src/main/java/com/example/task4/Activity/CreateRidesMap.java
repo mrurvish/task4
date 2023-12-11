@@ -13,9 +13,17 @@ import android.graphics.Color;
 import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
+import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
+import android.widget.AutoCompleteTextView;
 import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.task4.DataModels.DirectionsResponse;
@@ -39,6 +47,8 @@ import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.card.MaterialCardView;
+import com.google.android.material.textview.MaterialTextView;
+import com.google.gson.Gson;
 import com.google.maps.android.PolyUtil;
 
 import java.util.ArrayList;
@@ -49,37 +59,57 @@ public class CreateRidesMap extends AppCompatActivity implements OnMapReadyCallb
     private static final float Default_zoom = 150;
     double latitude, longitude;
     View mapview;
-    private GoogleMap googlemap;
-    private FusedLocationProviderClient locationprovider;
-    MaterialCardView cardview ;
+    TextView txt_pickup,txt_dropoff;
+    LinearLayout  main_layoout,chosseloc_layout;
+    MaterialTextView cardview;
     Polyline polyline;
     Marker marker;
     Button btn_next;
-
+    LinearLayout layout_location, layout_stops;
+    private GoogleMap googlemap;
+    private FusedLocationProviderClient locationprovider;
+    CreatePref pref;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_rides_map);
-        btn_next=findViewById(R.id.btn_next);
-        cardview = findViewById(R.id.chose_location);
-
+        btn_next = findViewById(R.id.btn_next);
+        cardview = findViewById(R.id.layout_click);
+        layout_location = findViewById(R.id.locations_map);
+        layout_stops = findViewById(R.id.stops_map);
+        main_layoout = findViewById(R.id.chose_location);
+        chosseloc_layout = findViewById(R.id.tv_layout);
+        txt_pickup = findViewById(R.id.txt_pickup_map);
+        txt_dropoff =findViewById(R.id.txt_dropoff_map);
+        layout_location.setVisibility(View.GONE);
         locationprovider = LocationServices.getFusedLocationProviderClient(this);
         initmap();
+        pref =  new CreatePref(this,"user");
         cardview.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 getLocationInput();
             }
         });
-        Log.d("check","on create");
+        layout_location.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                getLocationInput();
+            }
+        });
+        Log.d("check", "on create");
 
     }
 
     private void getLocationInput() {
+
         FullscreenDialoug fullScreenDialogFragment = new FullscreenDialoug();
         fullScreenDialogFragment.setMyDialogListener(this);
-        fullScreenDialogFragment.show(getSupportFragmentManager(), FullscreenDialoug.class.getSimpleName());
+       /* getSupportFragmentManager().beginTransaction()
+                .setCustomAnimations(R.anim.slide_down, R.anim.slide_up, 0, 0)
+                .replace(R.id.dial, fullScreenDialogFragment, "YourDialogFragmentTag").commit();*/
+       fullScreenDialogFragment.show(getSupportFragmentManager(), FullscreenDialoug.class.getSimpleName());
     }
 
     private void initmap() {
@@ -121,7 +151,7 @@ public class CreateRidesMap extends AppCompatActivity implements OnMapReadyCallb
             public void onComplete(@NonNull Task<Location> task) {
                 if (task.isSuccessful()) {
                     Location currentloc = (Location) task.getResult();
-                    if (currentloc!=null) {
+                    if (currentloc != null) {
                         movecamera(new LatLng(currentloc.getLatitude(), currentloc.getLongitude()), Default_zoom);
                     }
                     //  origin = currentloc.getLatitude() + "," + currentloc.getLongitude();
@@ -170,48 +200,56 @@ public class CreateRidesMap extends AppCompatActivity implements OnMapReadyCallb
     }
 
 
-
     @Override
     protected void onStart() {
         super.onStart();
-        Log.d("check","on start");
+        Log.d("check", "on start");
     }
+
     @Override
     protected void onResume() {
         super.onResume();
-        Log.d("check","on resume");
+        Log.d("check", "on resume");
     }
+
     @Override
     protected void onPause() {
         super.onPause();
-        Log.d("check","on pause");
+        Log.d("check", "on pause");
     }
+
     @Override
     protected void onStop() {
         super.onStop();
-        Log.d("check","on stop");
-        CreatePref pref = new CreatePref(CreateRidesMap.this,"locations");
+        Log.d("check", "on stop");
+        CreatePref pref = new CreatePref(CreateRidesMap.this, "locations");
         pref.clearpref();
+        googlemap.clear();
+        layout_location.setVisibility(View.GONE);
+        btn_next.setEnabled(false);
+        cardview.setVisibility(View.VISIBLE);
+
+
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        Log.d("check","on destroy");
+        Log.d("check", "on destroy");
     }
 
     @Override
     protected void onRestart() {
         super.onRestart();
-        Log.d("check","on restarte");
+        Log.d("check", "on restarte");
     }
 
     @Override
-    public void onDataReceived(DirectionsResponse response, LocationZone city) {
-        if (polyline!=null) {
+    public void onDataReceived(DirectionsResponse response, LocationZone city, String[] stops) {
+        if (polyline != null) {
             polyline.remove();
         }
-        if (marker!=null) {
+        if (marker != null) {
             marker.remove();
         }
         googlemap.clear();
@@ -221,13 +259,11 @@ public class CreateRidesMap extends AppCompatActivity implements OnMapReadyCallb
         polylineOptions.color(Color.BLUE);
         polylineOptions.geodesic(true);// Set color to blue
         polylineOptions.width(20);
-        for (int i =0;i<response.routes.get(0).legs.size();i++)
-        {
+        for (int i = 0; i < response.routes.get(0).legs.size(); i++) {
             steplist.add(response.routes.get(0).legs.get(i).steps);
 
         }
-        for (List<DirectionsResponse.Step> steps : steplist)
-        {
+        for (List<DirectionsResponse.Step> steps : steplist) {
 
             //  List<DirectionsResponse.Step> steps = response.routes.get(0).legs.get(0).steps;
             for (DirectionsResponse.Step step : steps) {
@@ -242,52 +278,92 @@ public class CreateRidesMap extends AppCompatActivity implements OnMapReadyCallb
 
         }
 
-        polyline =  googlemap.addPolyline(polylineOptions);
+        polyline = googlemap.addPolyline(polylineOptions);
         //  DirectionsResponse.Leg steps1 = response.routes.get(0).legs.get(0);
 
 
-
-
-
-        List<LatLng> latlng=new ArrayList<>() ;
+        List<LatLng> latlng = new ArrayList<>();
         List<MarkerOptions> markeroptionslist = new ArrayList<>();
 
-        for (int i = 0;i<response.routes.get(0).legs.size();i++)
-        {
-            latlng.add(new LatLng(response.routes.get(0).legs.get(i).startloc.lat,response.routes.get(0).legs.get(i).startloc.lng));
+        for (int i = 0; i < response.routes.get(0).legs.size(); i++) {
+            latlng.add(new LatLng(response.routes.get(0).legs.get(i).startloc.lat, response.routes.get(0).legs.get(i).startloc.lng));
 
-            markeroptionslist.add(new MarkerOptions().position(latlng.get(i)).title(response.routes.get(0).legs.get(i).start_address).title(i+" : "+response.routes.get(0).legs.get(i).start_address));
+            markeroptionslist.add(new MarkerOptions().position(latlng.get(i)).title(response.routes.get(0).legs.get(i).start_address).title(i + " : " + response.routes.get(0).legs.get(i).start_address));
             String start = response.routes.get(0).legs.get(0).start_address;
             String end = response.routes.get(0).legs.get(i).end_address;
-            if (i==response.routes.get(0).legs.size()-1) {
+            if (i == response.routes.get(0).legs.size() - 1) {
                 if (!start.equals(response.routes.get(0).legs.get(i).end_address)) {
                     latlng.add(new LatLng(response.routes.get(0).legs.get(i).endloc.lat, response.routes.get(0).legs.get(i).endloc.lng));
 
                     markeroptionslist.add(new MarkerOptions().position(latlng.get(i + 1)).title(response.routes.get(0).legs.get(i).end_address).title(i + 1 + " : " + response.routes.get(0).legs.get(i).end_address));
-                    marker= googlemap.addMarker(markeroptionslist.get(i+1));
+                    marker = googlemap.addMarker(markeroptionslist.get(i + 1));
                 }
             }
-            marker= googlemap.addMarker(markeroptionslist.get(i));
+            marker = googlemap.addMarker(markeroptionslist.get(i));
         }
         btn_next.setEnabled(true);
         btn_next.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(CreateRidesMap.this,BookRide.class);
+                Intent intent = new Intent(CreateRidesMap.this, BookRide.class);
                 intent.putExtra("bookride", response);
                 Intent dataintent = getIntent();
-                User user = (User) dataintent.getSerializableExtra("user");
-                Log.d("intent",user.getEmail());
-                intent.putExtra("user",user);
-                intent.putExtra("city",city);
+                String userdata = pref.getString("userdata");
+                Gson gson = new Gson();
+                User user = (User)gson.fromJson(userdata,User.class);
+                Log.d("intent", user.getEmail());
+                intent.putExtra("user", user);
+                intent.putExtra("city", city);
                 startActivity(intent);
 
             }
         });
+        layout_location.setVisibility(View.VISIBLE);
+        cardview.setVisibility(View.GONE);
         // MarkerOptions markerOptions =new MarkerOptions()
         //   .position(latLng)
+        layout_stops.removeAllViews();
+        for (int i = 0; i < stops.length; i++) {
+            LinearLayout linearLayout = new LinearLayout(CreateRidesMap.this);
+            linearLayout.setLayoutParams(new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT));
+            linearLayout.setOrientation(LinearLayout.HORIZONTAL);
+            //     linearLayout.setBackgroundColor(ContextCompat.getColor(requireActivity(), R.color.black));
+
+            ImageView image = new ImageView(CreateRidesMap.this);
+            image.setImageResource(R.drawable.stops);
+            LinearLayout.LayoutParams imageParams = new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+            );
+            imageParams.gravity = Gravity.CENTER_VERTICAL;
+            imageParams.setMargins(25, 0, 0, 0); // left, top, right, bottom margins
+            image.setLayoutParams(imageParams);
+            TextView tv = new TextView(CreateRidesMap.this);
+
+            tv.setBackgroundResource(android.R.drawable.editbox_background_normal);
+
+            tv.setTextColor(ContextCompat.getColor(CreateRidesMap.this, R.color.black));
+            tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);
+            tv.setText(stops[i]);
+
+            LinearLayout.LayoutParams tvParams = new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+
+            );
+
+            tv.setLayoutParams(tvParams);
+            linearLayout.addView(image);
+            linearLayout.addView(tv);
+            layout_stops.addView(linearLayout);
+        }
+        txt_pickup.setText(response.routes.get(0).legs.get(0).start_address);
+        txt_dropoff.setText(response.routes.get(0).legs.get(response.routes.get(0).legs.size()-1).end_address);
 
 
     }
+
 
 }

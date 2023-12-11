@@ -17,7 +17,9 @@
         <item name="android:background">@color/liteyello</item>
     </style>
 
-
+<style name="button">
+    <item name="backgroundColor">@color/color4</item>
+</style>
     
     <style name="Theme.Task4" parent="Base.Theme.Task4" />
     <style name="roundedImageViewRounded">
@@ -28,9 +30,9 @@
 
     </style>
 
-    <style name="AppTheme.FullScreenDialog" parent="Theme.AppCompat.Light.Dialog">
+    <style name="FullScreenDialog" parent="Theme.AppCompat.Light.Dialog">
 
-        <item name="android:windowIsFloating">false</item>
+        <item name="android:windowFullscreen">true</item>
 
 
     </style>

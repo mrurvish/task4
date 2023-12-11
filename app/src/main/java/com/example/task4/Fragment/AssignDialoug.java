@@ -73,6 +73,13 @@ public class AssignDialoug extends DialogFragment {
                 }
             }
         });
+        assign_nearest.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                listner.onDriverreceived(ride,null);
+                dismiss();
+            }
+        });
         return view;
     }
 

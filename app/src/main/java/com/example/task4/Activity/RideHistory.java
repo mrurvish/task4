@@ -1,15 +1,12 @@
 package com.example.task4.Activity;
 
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.PopupMenu;
 import androidx.appcompat.widget.SearchView;
 import androidx.appcompat.widget.Toolbar;
-import androidx.core.widget.NestedScrollView;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.TypedValue;
@@ -20,39 +17,30 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.task4.Adapter.CustomAdapter;
+import com.example.task4.Adapter.CSVGenerator;
+import com.example.task4.Adapter.PDFGenerator;
+import com.example.task4.Adapter.RideHistoryAdapter;
 import com.example.task4.DataModels.AllVehicals;
-import com.example.task4.DataModels.DriverDetails;
 import com.example.task4.DataModels.RidesRespons;
-import com.example.task4.Fragment.AssignDialoug;
 import com.example.task4.Fragment.BottomSheetFilters;
 import com.example.task4.Fragment.RideDialoug;
-import com.example.task4.Interface.AssignDialougListner;
 import com.example.task4.Interface.BottomsheetDialougListner;
 import com.example.task4.Network.ApiPath;
 import com.example.task4.Network.RetrofitClient;
-import com.example.task4.Preference.CreatePref;
 import com.example.task4.Preference.SharedPreferencesManager;
 import com.example.task4.R;
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.socket.client.IO;
-import io.socket.client.Socket;
-import io.socket.emitter.Emitter;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class ConfirmRides extends AppCompatActivity implements BottomsheetDialougListner, AssignDialougListner {
+public class RideHistory extends AppCompatActivity implements BottomsheetDialougListner {
     public int pagenum = 1, filterpagenum = 1, searchpage = 1;
     SharedPreferencesManager manager;
     RecyclerView recyclerview;
@@ -61,71 +49,41 @@ public class ConfirmRides extends AppCompatActivity implements BottomsheetDialou
     List<RidesRespons> responselist = new ArrayList<>();
     List<RidesRespons.Ride> ridelist = new ArrayList<>();
     List<RidesRespons.Ride> filteredlist = new ArrayList<>();
-    CustomAdapter adapter;
-    ProgressBar pbar;
-    ImageView filter;
-    int totelpage, totelfilterpage;
-    NestedScrollView nestedSV;
+    List<RidesRespons.Ride> downloadlist = new ArrayList<>();
+    RideHistoryAdapter adapter;
     String searchtext = "", servicetype = "", from = "", to = "", status = "";
-    List<AllVehicals> vehicals;
     LinearLayout filter_list;
-    Socket socket;
-    String TAG = "soket";
-    CreatePref pref;
-
-    int limit;
     String token;
-
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        socket.disconnect();
-    }
+    int totelpage, totelfilterpage;
+    ImageView filter, download;
+    List<AllVehicals> vehicals;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_confirm_rides);
-
-        try {
-            socket = IO.socket("http://192.168.0.215:3000");
-            socket.connect();
-            socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
-                @Override
-                public void call(Object... args) {
-                    // This will be called when the socket is connected
-
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            Toast.makeText(ConfirmRides.this, "Socket is connected..", Toast.LENGTH_SHORT).show();
-                        }
-                    });
-
-                }
-            });
-
-        } catch (URISyntaxException e) {
-            throw new RuntimeException(e);
-        }
-
-
-        recyclerview = findViewById(R.id.recyclerview);
+        setContentView(R.layout.activity_ride_history);
+        recyclerview = findViewById(R.id.recyclerview_history);
         manager = new SharedPreferencesManager(this);
         ridelist = new ArrayList<>();
-        toolbar = findViewById(R.id.toolbarconfirm);
-        filter = findViewById(R.id.image_filter);
-        filter_list = findViewById(R.id.filter_list);
+        toolbar = findViewById(R.id.toolbarhistory);
+        filter = findViewById(R.id.image_filter_history);
+        filter_list = findViewById(R.id.filter_list_history);
         Menu menu = toolbar.getMenu();
         toolbar.setTitle("Confirm Ride");
+        download = findViewById(R.id.download);
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
 
-                        Intent intent = new Intent(ConfirmRides.this,HomeActivity.class);
-                        startActivity(intent);
-                        finish();
+                Intent intent = new Intent(RideHistory.this, HomeActivity.class);
+                startActivity(intent);
+                finish();
+            }
+        });
+        download.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                showPopupMenu(view);
             }
         });
         MenuItem searchItem = menu.findItem(R.id.app_bar_search);
@@ -167,7 +125,7 @@ public class ConfirmRides extends AppCompatActivity implements BottomsheetDialou
                 } else {
                     filteredlist.clear();
                     searchpage = 1;
-                    getsearchrequest(pagenum, token, searchtext, servicetype, status, to, from);
+                    getsearchrequest(searchpage, token, searchtext, servicetype, status, to, from);
                 }
                 // Return true if you want to consume the event, false otherwise
                 return false;
@@ -179,13 +137,11 @@ public class ConfirmRides extends AppCompatActivity implements BottomsheetDialou
                 showBottomSheetDialog();
             }
         });
-
         token = manager.getToken();
         if (!token.isEmpty()) {
             getvehicals(token);
             getallRequests(pagenum, token);
         }
-
         recyclerview.setOnScrollChangeListener(new View.OnScrollChangeListener() {
             @Override
             public void onScrollChange(View view, int i, int i1, int i2, int i3) {
@@ -209,184 +165,12 @@ public class ConfirmRides extends AppCompatActivity implements BottomsheetDialou
             }
         });
 
-
-        //listning to socket
-
-        socket.on("rideAssigned", new Emitter.Listener() {
-            @Override
-            public void call(Object... args) {
-                runOnUiThread(() -> {
-                    String json = args[0].toString();
-                    Gson gson = new Gson();
-                    RidesRespons.Ride rideData = gson.fromJson(json, RidesRespons.Ride.class);
-                    adapter.updatestatus(rideData);
-
-
-                   // Toast.makeText(ConfirmRides.this, args[0].toString(), Toast.LENGTH_SHORT).show();
-                });
-            }
-        });
-        socket.on("rideCancelled", new Emitter.Listener() {
-            @Override
-            public void call(Object... args) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        String json = args[0].toString();
-                        Gson gson = new Gson();
-                        RidesRespons.Ride rideData = gson.fromJson(json, RidesRespons.Ride.class);
-                        if (searchtext.isEmpty() && servicetype.isEmpty() && status.isEmpty() && to.isEmpty() && from.isEmpty()) {
-                            ridelist = adapter.removeRide(rideData);
-                        } else {
-                            filteredlist = adapter.removeRide(rideData);
-                        }
-                    }
-                });
-            }
-        });
-        socket.on("driverTimeout", new Emitter.Listener() {
-            @Override
-            public void call(Object... args) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        String json = args[0].toString();
-                        Gson gson = new Gson();
-                        RidesRespons rideData = gson.fromJson(json, RidesRespons.class);
-                        if (checkfilters()) {
-                            ridelist = adapter.updatestatus(rideData.ride);
-                        } else {
-                            filteredlist = adapter.updatestatus(rideData.ride);
-                        }
-                    }
-                });
-            }
-        });
-        socket.on("rideTimeout", new Emitter.Listener() {
-            @Override
-            public void call(Object... args) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        String json = args[0].toString();
-                        Gson gson = new Gson();
-                        RidesRespons.Ride rideData = gson.fromJson(json, RidesRespons.Ride.class);
-                        if (checkfilters()) {
-                            ridelist = adapter.updatestatus(rideData);
-                        } else {
-                            filteredlist = adapter.updatestatus(rideData);
-                        }
-                        Toast.makeText(ConfirmRides.this, "No driver selected this ride...!", Toast.LENGTH_SHORT).show();
-                    }
-                });
-            }
-        });
-        socket.on("statusUpdated", new Emitter.Listener() {
-            @Override
-            public void call(Object... args) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        String json = args[0].toString();
-                        Gson gson = new Gson();
-                        RidesRespons.Ride rideData = gson.fromJson(json, RidesRespons.Ride.class);
-                        if (checkfilters()) {
-                            ridelist = adapter.updatestatus(rideData);
-                        } else {
-                            filteredlist = adapter.updatestatus(rideData);
-                        }
-                    }
-                });
-            }
-        });
-        socket.on("rideHold", new Emitter.Listener() {
-            @Override
-            public void call(Object... args) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        String json = args[0].toString();
-                        Gson gson = new Gson();
-                        RidesRespons.Ride rideData = gson.fromJson(json, RidesRespons.Ride.class);
-                        if (checkfilters()) {
-                            ridelist = adapter.updatestatus(rideData);
-                        } else {
-                            filteredlist = adapter.updatestatus(rideData);
-                        }
-                    }
-                });
-            }
-        });
-        socket.on("rideAccepted", new Emitter.Listener() {
-            @Override
-            public void call(Object... args) {
-                String json = args[0].toString();
-                Gson gson = new Gson();
-                RidesRespons.Ride rideData = gson.fromJson(json, RidesRespons.Ride.class);
-                if (checkfilters()) {
-                    ridelist = adapter.updatestatus(rideData);
-                } else {
-                    filteredlist = adapter.updatestatus(rideData);
-                }
-            }
-        });
-        socket.on("rideRejected", new Emitter.Listener() {
-            @Override
-            public void call(Object... args) {
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        String json= args[0].toString();
-                        Gson gson = new Gson();
-                        RidesRespons rideData = gson.fromJson(json, RidesRespons.class);
-                        ridelist = adapter.updatestatus(rideData.ride);
-                    }
-                });
-            }
-        });
-
     }
 
-    public boolean checkfilters() {
-        if (searchtext.isEmpty() && servicetype.isEmpty() && status.isEmpty() && to.isEmpty() && from.isEmpty()) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-   /* private void filter(String newText) {
-        List<RidesRespons.Ride> filteredlist= new ArrayList<>();
-        for (RidesRespons.Ride ride : ridelist)
-        {
-            if (ride.userName.toLowerCase().contains(newText)) {
-                // if the item is matched we are
-                // adding it to our filtered list.
-                filteredlist.add(ride);
-            }
-        }
-        if (filteredlist.isEmpty()) {
-            // if no item is added in filtered list we are
-            // displaying a toast message as no data found.
-            Toast.makeText(this, "No Data Found..", Toast.LENGTH_SHORT).show();
-        } else {
-            // at last we are passing that filtered
-            // list to our adapter class.
-            adapter.filterlist(filteredlist);
-        }
-    }*/
-
-    private void showBottomSheetDialog() {
-        BottomSheetFilters bottomsheetfilters = new BottomSheetFilters();
-        bottomsheetfilters.setVehicals(vehicals,0);
-        bottomsheetfilters.setMyDialogListener(this);
-        bottomsheetfilters.show(getSupportFragmentManager(), "filters");
-
-    }
 
     public void getsearchrequest(int page, String token, String searchstring, String vehicalstring, String statusstring, String dateto, String datefrom) {
         String modifiedtoken = "Bearer " + token;
-        String st = "[1,2,3,4,5,6]";
+        String st = "[-1,7]";
 
 
         ApiPath path = RetrofitClient.getRetrofitInstance().create(ApiPath.class);
@@ -401,7 +185,7 @@ public class ConfirmRides extends AppCompatActivity implements BottomsheetDialou
                     adapter.filterlist(filteredlist);
                     adapter.notifyDataSetChanged();
                 } else {
-                    Toast.makeText(ConfirmRides.this, "No rides found", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(RideHistory.this, "No rides found", Toast.LENGTH_SHORT).show();
                 }
                 //adapter.notifyDataSetChanged();
             }
@@ -417,7 +201,7 @@ public class ConfirmRides extends AppCompatActivity implements BottomsheetDialou
         String modifiedtoken = "Bearer " + token;
         filteredlist = new ArrayList<>();
         ApiPath path = RetrofitClient.getRetrofitInstance().create(ApiPath.class);
-        String status = "[1,2,3,4,5,6]";
+        String status = "[-1,7]";
         Call<RidesRespons> call = path.getallrides(modifiedtoken, String.valueOf(page), status);
         call.enqueue(new Callback<RidesRespons>() {
             @Override
@@ -428,10 +212,10 @@ public class ConfirmRides extends AppCompatActivity implements BottomsheetDialou
                     // Add the new rides to the existing list
                     ridelist.addAll(response.body().rides);
                     if (adapter == null) {
-                        adapter = new CustomAdapter(ConfirmRides.this, ridelist);
-                        recyclerview.setLayoutManager(new LinearLayoutManager(ConfirmRides.this));
+                        adapter = new RideHistoryAdapter(RideHistory.this, ridelist);
+                        recyclerview.setLayoutManager(new LinearLayoutManager(RideHistory.this));
                         recyclerview.setAdapter(adapter);
-                        adapter.setOnItemClickListener(new CustomAdapter.OnItemClickListener() {
+                        adapter.setOnItemClickListener(new RideHistoryAdapter.OnItemClickListener() {
                             @Override
                             public void onItemClick(int position) {
                                 openCustomDialog(position);
@@ -440,12 +224,12 @@ public class ConfirmRides extends AppCompatActivity implements BottomsheetDialou
 
                             @Override
                             public void onAssignClick(int position) {
-                                openAssignDialoug(position);
+                                //openAssignDialoug(position);
                             }
 
                             @Override
                             public void onCancelclick(int position) {
-                                cancelRide(position);
+                                //cancelRide(position);
                             }
                         });
 
@@ -461,44 +245,6 @@ public class ConfirmRides extends AppCompatActivity implements BottomsheetDialou
 
             }
         });
-    }
-
-    private void cancelRide(int position) {
-        if (searchtext.isEmpty() && servicetype.isEmpty() && status.isEmpty() && to.isEmpty() && from.isEmpty()) {
-            Gson gson = new Gson();
-            JsonObject rideobj = gson.toJsonTree(ridelist.get(position)).getAsJsonObject();
-            // JsonObject driverobj = gson.toJsonTree(Driver).getAsJsonObject();
-            confirmCancel(this, rideobj);
-
-
-        } else {
-            Gson gson = new Gson();
-            JsonObject rideobj = gson.toJsonTree(filteredlist.get(position)).getAsJsonObject();
-            // JsonObject driverobj = gson.toJsonTree(Driver).getAsJsonObject();
-            confirmCancel(this, rideobj);
-
-        }
-    }
-
-    private void openAssignDialoug(int position) {
-        AssignDialoug assignDialoug = new AssignDialoug();
-        assignDialoug.setAssignListner(this);
-        if (searchtext.isEmpty() && servicetype.isEmpty() && status.isEmpty() && to.isEmpty() && from.isEmpty()) {
-            assignDialoug.setcustomedata(ridelist, position);
-        } else {
-            assignDialoug.setcustomedata(filteredlist, position);
-        }
-        assignDialoug.show(getSupportFragmentManager(), "assign");
-    }
-
-    private void openCustomDialog(int position) {
-        RideDialoug customDialogFragment = new RideDialoug();
-        if (searchtext.isEmpty() && servicetype.isEmpty() && status.isEmpty() && to.isEmpty() && from.isEmpty()) {
-            customDialogFragment.setcustomedata(ridelist, position);
-        } else {
-            customDialogFragment.setcustomedata(filteredlist, position);
-        }
-        customDialogFragment.show(getSupportFragmentManager(), "CustomDialogFragment");
     }
 
     public void getvehicals(String token) {
@@ -521,32 +267,22 @@ public class ConfirmRides extends AppCompatActivity implements BottomsheetDialou
         });
     }
 
-    @Override
-    public void onDriverreceived(RidesRespons.Ride ride, DriverDetails Driver) {
+    private void showBottomSheetDialog() {
+        BottomSheetFilters bottomsheetfilters = new BottomSheetFilters();
+        bottomsheetfilters.setVehicals(vehicals, 1);
+        bottomsheetfilters.setMyDialogListener(this);
+        bottomsheetfilters.show(getSupportFragmentManager(), "filters");
 
-        Gson gson = new Gson();
-        JsonObject rideobj = gson.toJsonTree(ride).getAsJsonObject();
+    }
 
-        JsonObject combinedObj = new JsonObject();
-        combinedObj.add("ride", rideobj);
-
-        if (Driver == null) {
-            socket.emit("assignToNearestDriver",rideobj);
+    private void openCustomDialog(int position) {
+        RideDialoug customDialogFragment = new RideDialoug();
+        if (searchtext.isEmpty() && servicetype.isEmpty() && status.isEmpty() && to.isEmpty() && from.isEmpty()) {
+            customDialogFragment.setcustomedata(ridelist, position);
         } else {
-            JsonObject driverobj = gson.toJsonTree(Driver).getAsJsonObject();
-            combinedObj.add("driver", driverobj);
-            socket.emit("assignToSelectedDriver", combinedObj);
+            customDialogFragment.setcustomedata(filteredlist, position);
         }
-        socket.on("error", new Emitter.Listener() {
-            @Override
-            public void call(Object... args) {
-                runOnUiThread(() ->
-                        Toast.makeText(ConfirmRides.this, args.toString(), Toast.LENGTH_SHORT).show());
-
-            }
-        });
-
-        //Toast.makeText(this, "called", Toast.LENGTH_SHORT).show();
+        customDialogFragment.show(getSupportFragmentManager(), "CustomDialogFragment");
     }
 
     @Override
@@ -556,16 +292,15 @@ public class ConfirmRides extends AppCompatActivity implements BottomsheetDialou
         this.to = to;
         this.from = from;
         filteredlist = new ArrayList<>();
+        searchpage = 1;
         getsearchrequest(searchpage, token, searchtext, servicetype, status, to, from);
         filter_list.removeAllViews();
         showfilter();
-
-
     }
 
     private void showfilter() {
         if (!servicetype.isEmpty()) {
-            LinearLayout linearLayout0 = new LinearLayout(ConfirmRides.this);
+            LinearLayout linearLayout0 = new LinearLayout(RideHistory.this);
             linearLayout0.setLayoutParams(new LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.WRAP_CONTENT,
                     ViewGroup.LayoutParams.WRAP_CONTENT));
@@ -573,7 +308,7 @@ public class ConfirmRides extends AppCompatActivity implements BottomsheetDialou
             linearLayout0.setBackgroundResource(R.drawable.round_shape);
             linearLayout0.setPadding(7, 7, 7, 7);
             linearLayout0.setGravity(Gravity.CENTER);
-            TextView tv = new TextView(ConfirmRides.this);
+            TextView tv = new TextView(RideHistory.this);
 
             tv.setText(servicetype);
             tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
@@ -584,7 +319,7 @@ public class ConfirmRides extends AppCompatActivity implements BottomsheetDialou
 
 
             tv.setLayoutParams(tvParams);
-            ImageView image = new ImageView(ConfirmRides.this);
+            ImageView image = new ImageView(RideHistory.this);
             image.setImageResource(R.drawable.ic_baseline_close_24);
             LinearLayout.LayoutParams imageParams = new LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.WRAP_CONTENT,
@@ -609,7 +344,7 @@ public class ConfirmRides extends AppCompatActivity implements BottomsheetDialou
             });
         }
         if (!status.isEmpty()) {
-            LinearLayout linearLayout0 = new LinearLayout(ConfirmRides.this);
+            LinearLayout linearLayout0 = new LinearLayout(RideHistory.this);
             linearLayout0.setLayoutParams(new LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.WRAP_CONTENT,
                     ViewGroup.LayoutParams.WRAP_CONTENT));
@@ -617,7 +352,7 @@ public class ConfirmRides extends AppCompatActivity implements BottomsheetDialou
             linearLayout0.setBackgroundResource(R.drawable.round_shape);
             linearLayout0.setPadding(7, 7, 7, 7);
             linearLayout0.setGravity(Gravity.CENTER);
-            TextView tv = new TextView(ConfirmRides.this);
+            TextView tv = new TextView(RideHistory.this);
 
             tv.setText(status);
             tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
@@ -627,7 +362,7 @@ public class ConfirmRides extends AppCompatActivity implements BottomsheetDialou
             );
 
             tv.setLayoutParams(tvParams);
-            ImageView image = new ImageView(ConfirmRides.this);
+            ImageView image = new ImageView(RideHistory.this);
             image.setImageResource(R.drawable.ic_baseline_close_24);
             LinearLayout.LayoutParams imageParams = new LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.WRAP_CONTENT,
@@ -654,7 +389,7 @@ public class ConfirmRides extends AppCompatActivity implements BottomsheetDialou
 
         }
         if (!from.isEmpty()) {
-            LinearLayout linearLayout0 = new LinearLayout(ConfirmRides.this);
+            LinearLayout linearLayout0 = new LinearLayout(RideHistory.this);
             linearLayout0.setLayoutParams(new LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.WRAP_CONTENT,
                     ViewGroup.LayoutParams.WRAP_CONTENT));
@@ -662,7 +397,7 @@ public class ConfirmRides extends AppCompatActivity implements BottomsheetDialou
             linearLayout0.setBackgroundResource(R.drawable.round_shape);
             linearLayout0.setPadding(7, 7, 7, 7);
             linearLayout0.setGravity(Gravity.CENTER);
-            TextView tv = new TextView(ConfirmRides.this);
+            TextView tv = new TextView(RideHistory.this);
 
             tv.setText("From:" + from);
             tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
@@ -672,7 +407,7 @@ public class ConfirmRides extends AppCompatActivity implements BottomsheetDialou
             );
 
             tv.setLayoutParams(tvParams);
-            ImageView image = new ImageView(ConfirmRides.this);
+            ImageView image = new ImageView(RideHistory.this);
             image.setImageResource(R.drawable.ic_baseline_close_24);
             LinearLayout.LayoutParams imageParams = new LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.WRAP_CONTENT,
@@ -699,7 +434,7 @@ public class ConfirmRides extends AppCompatActivity implements BottomsheetDialou
             });
         }
         if (!from.isEmpty() && !to.isEmpty()) {
-            LinearLayout linearLayout0 = new LinearLayout(ConfirmRides.this);
+            LinearLayout linearLayout0 = new LinearLayout(RideHistory.this);
             linearLayout0.setLayoutParams(new LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.WRAP_CONTENT,
                     ViewGroup.LayoutParams.WRAP_CONTENT));
@@ -707,7 +442,7 @@ public class ConfirmRides extends AppCompatActivity implements BottomsheetDialou
             linearLayout0.setBackgroundResource(R.drawable.round_shape);
             linearLayout0.setPadding(7, 7, 7, 7);
             linearLayout0.setGravity(Gravity.CENTER);
-            TextView tv = new TextView(ConfirmRides.this);
+            TextView tv = new TextView(RideHistory.this);
 
             tv.setText("To:" + to);
             tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
@@ -717,7 +452,7 @@ public class ConfirmRides extends AppCompatActivity implements BottomsheetDialou
             );
 
             tv.setLayoutParams(tvParams);
-            ImageView image = new ImageView(ConfirmRides.this);
+            ImageView image = new ImageView(RideHistory.this);
             image.setImageResource(R.drawable.ic_baseline_close_24);
             LinearLayout.LayoutParams imageParams = new LinearLayout.LayoutParams(
                     ViewGroup.LayoutParams.WRAP_CONTENT,
@@ -746,28 +481,60 @@ public class ConfirmRides extends AppCompatActivity implements BottomsheetDialou
 
     }
 
-    public void confirmCancel(Context context, JsonObject rideobj) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+    private void showPopupMenu(View view) {
+        PopupMenu popupMenu = new PopupMenu(this, view);
+        popupMenu.getMenuInflater().inflate(R.menu.download, popupMenu.getMenu());
+        final int MENU_ITEM_1 = R.id.csv;
+        final int MENU_ITEM_2 = R.id.pdf;
+        popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
 
-        builder.setTitle("Cancel Ride");
-        builder.setMessage("Do you want to cancel this ride?");
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                if (item.getItemId() == MENU_ITEM_1) {
 
-        // Set the Yes button and its listener
-        builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int id) {
-                socket.emit("cancelRide", rideobj);
+                    downloadRideHistory(0);
 
+
+                }
+                if (item.getItemId() == MENU_ITEM_2) {
+
+                    downloadRideHistory(1);
+                }
+
+                return false;
             }
         });
 
-        // Set the No button and its listener
-        builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int id) {
-
-            }
-        });
-        AlertDialog alertDialog = builder.create();
-        alertDialog.show();
+        popupMenu.show();
     }
 
+    public void downloadRideHistory(int i) {
+        String modifiedtoken = "Bearer " + token;
+
+        ApiPath path = RetrofitClient.getRetrofitInstance().create(ApiPath.class);
+        String status = "[-1,7]";
+        Call<List<RidesRespons.Ride>> call = path.fileDownload(modifiedtoken, status);
+        call.enqueue(new Callback<List<RidesRespons.Ride>>() {
+            @Override
+            public void onResponse(Call<List<RidesRespons.Ride>> call, Response<List<RidesRespons.Ride>> response) {
+                if (response.isSuccessful()) {
+                    downloadlist = response.body();
+                    if (i == 0) {
+                        CSVGenerator csv = new CSVGenerator(getContentResolver());
+                        csv.generateCSV(downloadlist);
+                    }
+                    if (i == 1) {
+                        PDFGenerator pdf = new PDFGenerator(getContentResolver());
+
+                        pdf.generatePDF(downloadlist, "hello");
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<RidesRespons.Ride>> call, Throwable t) {
+                Toast.makeText(RideHistory.this, "failed.....", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
 }

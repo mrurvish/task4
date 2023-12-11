@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 import com.example.task4.DataModels.Settings;
+import com.example.task4.DataModels.User;
 import com.google.gson.Gson;
 
 public class CreatePref {
@@ -36,7 +37,13 @@ public class CreatePref {
         String json = gson.toJson(Data);
         editor.putString(Key,json);
         editor.apply();
+    } public void setString(String Key, User Data) {
+        Gson gson = new Gson();
+        String json = gson.toJson(Data);
+        editor.putString(Key,json);
+        editor.apply();
     }
+
 public Settings getobject(String Key){
     Gson gson = new Gson();
     Settings settings =gson.fromJson(preferences.getString(Key, ""), Settings.class);

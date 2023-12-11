@@ -17,14 +17,17 @@ import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.Toolbar;
 
 import com.example.task4.DataModels.Country;
+import com.example.task4.Preference.CreatePref;
 import com.example.task4.Preference.SharedPreferencesManager;
 import com.example.task4.DataModels.User;
 import com.example.task4.DataModels.UserPhone;
 import com.example.task4.Network.ApiPath;
 import com.example.task4.Network.RetrofitClient;
 import com.example.task4.R;
+import com.google.android.material.appbar.MaterialToolbar;
 import com.squareup.picasso.Picasso;
 
 import org.json.JSONObject;
@@ -47,8 +50,11 @@ public class CreateRides extends AppCompatActivity {
     private ProgressBar progressBar;
     List<Country> country;
     LinearLayout layout;
-    Button btn;
+    ImageView btn,btn_clear;
+    Button btn_next;
     String[] codes;
+    MaterialToolbar toolbar;
+    CreatePref pref;
 
 
 
@@ -65,7 +71,11 @@ public class CreateRides extends AppCompatActivity {
        progressBar = findViewById(R.id.p_bar);
        phone_number = findViewById(R.id.txt_num);
        btn = findViewById(R.id.btn_find_user);
+       btn_clear=findViewById(R.id.btn_cleare_user);
+       btn_next=findViewById(R.id.btn_next_createride);
+       toolbar=findViewById(R.id.toolbar_createride);
         manager = new SharedPreferencesManager(this);
+        pref=new CreatePref(this,"user");
         String token = manager.getToken();
         if (!token.isEmpty()) {
            // getcodes(token);
@@ -73,7 +83,16 @@ public class CreateRides extends AppCompatActivity {
             Toast.makeText(this, "token is empty", Toast.LENGTH_SHORT).show();
             //   showHome();
         }
-
+    toolbar.setNavigationIcon(R.drawable.baseline_arrow_back_24);
+        toolbar.setTitle("Create Ride");
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(CreateRides.this,HomeActivity.class);
+                startActivity(intent);
+                finish();
+            }
+        });
      btn.setOnClickListener(new View.OnClickListener() {
          @Override
          public void onClick(View view) {
@@ -86,7 +105,16 @@ public class CreateRides extends AppCompatActivity {
             // checknumber(num);
          }
      });
-
+btn_clear.setOnClickListener(new View.OnClickListener() {
+    @Override
+    public void onClick(View view) {
+        tvemail.setText("");
+        tvname.setText("");
+        tvnum.setText("");
+        img.setImageResource(0);
+        btn_next.setEnabled(false);
+    }
+});
     }
 
     private void findUser(String num, String code) {
@@ -115,7 +143,9 @@ public class CreateRides extends AppCompatActivity {
 
 
                     User user = response.body();
+                    btn_next.setEnabled(true);
                     nextScreen(user);
+                    pref.setString("userdata",response.body());
 
                 }
                 else {
@@ -145,7 +175,7 @@ public class CreateRides extends AppCompatActivity {
     }
     private void nextScreen(User user) {
 
-            layout.setOnClickListener(new View.OnClickListener() {
+            btn_next.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     Toast.makeText(CreateRides.this, "clicked", Toast.LENGTH_SHORT).show();
@@ -218,5 +248,16 @@ public class CreateRides extends AppCompatActivity {
             }
         });
 
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        Toast.makeText(CreateRides.this, "succesful", Toast.LENGTH_SHORT).show();
+        tvemail.setText("");
+        tvname.setText("");
+        tvnum.setText("");
+     img.setImageResource(0);
+        btn_next.setEnabled(false);
     }
 }

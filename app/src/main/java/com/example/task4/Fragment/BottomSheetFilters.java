@@ -2,6 +2,7 @@ package com.example.task4.Fragment;
 
 import android.annotation.SuppressLint;
 import android.app.DatePickerDialog;
+import android.app.Dialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -34,6 +35,7 @@ public class BottomSheetFilters extends BottomSheetDialogFragment {
     String v_type,s_type,d_from,d_to;
     BottomsheetDialougListner listner;
     Map<String,Integer> services;
+    int activity;
 
     @SuppressLint("SuspiciousIndentation")
     @Nullable
@@ -83,13 +85,25 @@ public class BottomSheetFilters extends BottomSheetDialogFragment {
         services.put("Started",6);
         services.put("Completed",7);
 
-        String[] servicelist = {"","Cancel","Hold","Panding","Assigning","Accepted","Arrived","Picked","Started","Completed"};
-        ArrayAdapter<String> arrayadapter = new ArrayAdapter<>(requireActivity(), android.R.layout.simple_list_item_1, servicelist);
-        arrayadapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        status.setAdapter(arrayadapter);
+        if (activity==0) {
+            String[] servicelist = {"", "Cancel", "Hold", "Panding", "Assigning", "Accepted", "Arrived", "Picked", "Started", "Completed"};
+            ArrayAdapter<String> arrayadapter = new ArrayAdapter<>(requireActivity(), android.R.layout.simple_list_item_1, servicelist);
+            arrayadapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            status.setAdapter(arrayadapter);
+        }
+        else {
+            String[] servicelist = {"", "Cancel", "Completed"};
+            ArrayAdapter<String> arrayadapter = new ArrayAdapter<>(requireActivity(), android.R.layout.simple_list_item_1, servicelist);
+            arrayadapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            status.setAdapter(arrayadapter);
+        }
+
 
         return view;
     }
+
+
+
     private void showDatePicker(int i) {
         // Get the current date
         Calendar calendar = Calendar.getInstance();
@@ -123,9 +137,10 @@ public class BottomSheetFilters extends BottomSheetDialogFragment {
         }
     }
 
-    public  void setVehicals(List<AllVehicals> vehicals)
+    public  void setVehicals(List<AllVehicals> vehicals,int i)
     {
         this.vehicals = vehicals;
+        this.activity = i;
     }
     public void setMyDialogListener(BottomsheetDialougListner listener) {
         this.listner = listener;

@@ -2,7 +2,10 @@ package com.example.task4.Activity;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 
+import android.app.DatePickerDialog;
+import android.app.TimePickerDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
@@ -12,11 +15,13 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
+import android.widget.DatePicker;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.TimePicker;
 import android.widget.Toast;
 
 import com.example.task4.DataModels.CityVihicals;
@@ -29,6 +34,7 @@ import com.example.task4.Network.ApiPath;
 import com.example.task4.Network.RetrofitClient;
 import com.example.task4.Preference.SharedPreferencesManager;
 import com.example.task4.R;
+import com.google.android.material.appbar.MaterialToolbar;
 import com.google.gson.Gson;
 
 import java.text.DateFormat;
@@ -49,7 +55,7 @@ public class BookRide extends AppCompatActivity {
     User user;
     DirectionsResponse response;
     Spinner spinner;
-    TextView tv_dist,tv_time,tv_price;
+    TextView tv_dist,tv_time,tv_price,tv_date_chose,tv_time_chose;
     int hours,minutes,km;
     float fulldist,fulltime;
     String[] types;
@@ -58,9 +64,10 @@ public class BookRide extends AppCompatActivity {
     RadioGroup payment_option;
     LinearLayout linearLayout;
     RadioButton cash,card;
-    Float fare;
+    int fare;
     SharedPreferencesManager manager;
     Button btn;
+    Toolbar toolbar;
 
 
 
@@ -78,12 +85,23 @@ public class BookRide extends AppCompatActivity {
         card = findViewById(R.id.radio_card);
         btn = findViewById(R.id.btn_book);
         linearLayout = findViewById(R.id.shedule);
-
-
+        toolbar = findViewById(R.id.toolbar_bookride);
+        tv_date_chose = findViewById(R.id.txt_date_chose);
+        tv_time_chose =findViewById(R.id.txt_time_chose);
         intent = getIntent();
         city = (LocationZone)intent.getSerializableExtra("city");
         user  = (User)intent.getSerializableExtra("user");
         response = (DirectionsResponse) intent.getSerializableExtra("bookride");
+        toolbar.setTitle("Book Ride");
+        toolbar.setNavigationIcon(R.drawable.baseline_arrow_back_24);
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(BookRide.this,CreateRidesMap.class);
+                startActivity(intent);
+                finish();
+            }
+        });
 
         if(response!= null)
         {
@@ -153,6 +171,64 @@ public class BookRide extends AppCompatActivity {
                 }
             }
         });
+        tv_date_chose.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                showDatePicker();
+            }
+        });
+        tv_time_chose.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                showTimepicker();
+            }
+        });
+    }
+    private void showDatePicker() {
+        // Get the current date
+        Calendar calendar = Calendar.getInstance();
+        int year = calendar.get(Calendar.YEAR);
+        int month = calendar.get(Calendar.MONTH);
+        int day = calendar.get(Calendar.DAY_OF_MONTH);
+
+        // Create a DatePickerDialog
+        DatePickerDialog datePickerDialog = new DatePickerDialog(this,
+                new DatePickerDialog.OnDateSetListener() {
+                    @Override
+                    public void onDateSet(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
+                        String formattedMonth = String.format(Locale.getDefault(), "%02d", monthOfYear + 1);
+                        String formattedDay = String.format(Locale.getDefault(), "%02d", dayOfMonth);
+                        String selectedDate = formattedDay + "/" + formattedMonth + "/" + year;
+                        tv_date_chose.setText(selectedDate);
+                    }
+                }, year, month, day);
+
+        // Show the DatePickerDialog
+        datePickerDialog.show();
+
+    }
+    private void showTimepicker()
+    {
+        Calendar calendar = Calendar.getInstance();
+        TimePickerDialog timePickerDialog = new TimePickerDialog(BookRide.this,
+                new TimePickerDialog.OnTimeSetListener() {
+                    @Override
+                    public void onTimeSet(TimePicker timePicker, int hourOfDay, int minute) {
+                        Calendar selectedTimeCalendar = Calendar.getInstance();
+                        selectedTimeCalendar.set(Calendar.HOUR_OF_DAY, hourOfDay);
+                        selectedTimeCalendar.set(Calendar.MINUTE, minute);
+
+                        // Use SimpleDateFormat to format the time in 12-hour format with AM/PM
+                        SimpleDateFormat dateFormat = new SimpleDateFormat("hh:mm a", Locale.getDefault());
+                        String selectedTime = dateFormat.format(selectedTimeCalendar.getTime());
+
+
+                        tv_time_chose.setText(selectedTime);
+                    }
+                }, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), false);
+
+        // Show the TimePickerDialog
+        timePickerDialog.show();
     }
 
     private void checkForCards(String token) {
@@ -211,13 +287,13 @@ public class BookRide extends AppCompatActivity {
 
     }
 
-    private float showpricing(int i, float km, float minute) {
+    private int showpricing(int i, float km, float minute) {
         int minfare = vehicallist.get(i).getMinFare();
         int basePriceDistance = vehicallist.get(i).getBasePriceDistance();
         int basePrice = vehicallist.get(i).getBasePrice();
         int unitDistanceprice   = vehicallist.get(i).getUnitDistancePrice();
         int unitTimeprice = vehicallist.get(i).getUnitTimePrice();
-        float fare=0;
+        int fare=0;
         if (fulldist > basePriceDistance)
         {
 
@@ -237,6 +313,7 @@ tv_price.setText(String.valueOf(fare));
         //bookRide();
         return fare;
     }
+
     public  void bookRide()
     {
         RideBody body ;
@@ -264,7 +341,11 @@ tv_price.setText(String.valueOf(fare));
         DateFormat timeFormat = new SimpleDateFormat("h:mm a", Locale.getDefault());
         String formattedDate = dateFormat.format(currentDate);
         String formattedTime = timeFormat.format(currentDate);
-
+if (check_shedule.isChecked())
+{
+formattedDate=tv_date_chose.getText().toString();
+formattedTime = tv_time_chose.getText().toString();
+}
         body = new RideBody(user.getId(),city.getId(),vehicallist.get(spinner.getSelectedItemPosition()).getId(),user.getName(),response.routes.get(0).legs.get(0).start_address,jsonString,response.routes.get(0).legs.get(last).end_address,String.valueOf(fulldist),String.valueOf(fulltime),String.valueOf(fare),payment_method,formattedDate,formattedTime);
         manager = new SharedPreferencesManager(this);
         String token = manager.getToken();
@@ -320,4 +401,6 @@ tv_price.setText(String.valueOf(fare));
             }
         });
     }
+
+
 }
