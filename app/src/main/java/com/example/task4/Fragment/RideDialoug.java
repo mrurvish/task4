@@ -1,5 +1,7 @@
 package com.example.task4.Fragment;
 
+import android.animation.AnimatorSet;
+import android.animation.ObjectAnimator;
 import android.app.Dialog;
 import android.graphics.Color;
 import android.location.Address;
@@ -12,6 +14,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.view.animation.AnimationUtils;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -78,22 +81,7 @@ DirectionsResponse directionsResponse;
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view =inflater.inflate(R.layout.ride_dialoug,container,false);
-        try {
-            socket = IO.socket("http://192.168.0.215:3000");
-            socket.connect();
-            socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
-                @Override
-                public void call(Object... args) {
-                    // This will be called when the socket is connected
 
-                    showToast("Socket connected");
-
-                }
-            });
-
-        } catch (URISyntaxException e) {
-            throw new RuntimeException(e);
-        }
 
         txt_name=view.findViewById(R.id.txt_user_name_d);
         txt_phone = view.findViewById(R.id.txt_user_phone_d);
@@ -118,9 +106,7 @@ DirectionsResponse directionsResponse;
             }
         });
 
-        SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map2);
-        mapFragment.getMapAsync(this);
-        mapview = mapFragment.getView();
+
         manager = new SharedPreferencesManager(requireActivity());
         if(rides!=null)
         {
@@ -137,33 +123,30 @@ DirectionsResponse directionsResponse;
             txt_date.setText(currentride.rideDate);
             txt_price.setText("₹"+" "+currentride.totalFare);
             txt_servicetype.setText(currentride.serviceType.getVehicleType());
-            String path = "http://192.168.0.215:3000/" + currentride.user.getProfile();
-            Picasso.get()
-                    .load(path)
-                    .into(profile);
+
             rideStops();
-            getdirections(currentride.pickUp,currentride.dropOff);
+
         }
 
         return view;
     }
 
     @Override
-    public void onDestroy() {
-        super.onDestroy();
-        socket.disconnect();
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        RidesRespons.Ride currentride = rides.get(position);
+        String path = "http://192.168.0.215:3000/" + currentride.user.getProfile();
+        Picasso.get()
+                .load(path)
+                .into(profile);
+        SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map2);
+        mapFragment.getMapAsync(this);
+        mapview = mapFragment.getView();
+        getdirections(currentride.pickUp,currentride.dropOff);
     }
 
-    private void showToast(String message) {
-        if (getActivity() != null) {
-            getActivity().runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT).show();
-                }
-            });
-        }
-    }
+
+
     private void rideStops() {
 
         Geocoder geocoder = new Geocoder(requireActivity(), Locale.getDefault());
@@ -228,13 +211,13 @@ DirectionsResponse directionsResponse;
         if (dialog.getWindow() != null) {
             dialog.getWindow().requestFeature(Window.FEATURE_NO_TITLE);
             dialog.getWindow().setBackgroundDrawableResource(android.R.color.white);
-          //  dialog.getWindow().getAttributes().windowAnimations = R.style.DialogAnimation;
+            dialog.getWindow().getAttributes().windowAnimations = R.style.Ride;
 
 
             dialog.getWindow().setGravity(Gravity.CENTER);
 
 
-            dialog.setCanceledOnTouchOutside(false);
+            dialog.setCanceledOnTouchOutside(true);
 
         }
         return dialog;

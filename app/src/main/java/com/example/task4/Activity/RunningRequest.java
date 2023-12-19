@@ -2,34 +2,28 @@ package com.example.task4.Activity;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.PopupMenu;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.RatingBar;
 import android.widget.Toast;
 
-import com.example.task4.Adapter.CSVGenerator;
 import com.example.task4.Adapter.RunningRequestAdapter;
 import com.example.task4.DataModels.Feedback;
 import com.example.task4.DataModels.Payment;
 import com.example.task4.DataModels.RidesRespons;
+import com.example.task4.Fragment.ChatDialoug;
 import com.example.task4.Network.ApiPath;
 import com.example.task4.Network.RetrofitClient;
 import com.example.task4.Preference.SharedPreferencesManager;
 import com.example.task4.R;
-import com.google.android.material.appbar.MaterialToolbar;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
@@ -94,8 +88,7 @@ public class RunningRequest extends AppCompatActivity {
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(RunningRequest.this,HomeActivity.class);
-                startActivity(intent);
+                onBackPressed();
                 finish();
             }
         });
@@ -269,6 +262,17 @@ public class RunningRequest extends AppCompatActivity {
                                     ride.add("ride",rideobj);
                                     socket.emit("nearestDriverRejectRide",ride);
                                 }
+                            }
+
+                            @Override
+                            public void onChatclick(int position) {
+                                ChatDialoug chatDialoug = new ChatDialoug();
+                                chatDialoug.show(getSupportFragmentManager(),"");
+
+                                    chatDialoug.setRide(ridelist.get(position),1);
+
+
+
                             }
                         });
 

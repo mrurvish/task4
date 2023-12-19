@@ -57,7 +57,8 @@ public class BookRide extends AppCompatActivity {
     Spinner spinner;
     TextView tv_dist,tv_time,tv_price,tv_date_chose,tv_time_chose;
     int hours,minutes,km;
-    float fulldist,fulltime;
+    float fulldist;
+    int fulltime;
     String[] types;
     List<CityVihicals> vehicallist;
     CheckBox check_shedule;
@@ -97,8 +98,7 @@ public class BookRide extends AppCompatActivity {
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(BookRide.this,CreateRidesMap.class);
-                startActivity(intent);
+                onBackPressed();
                 finish();
             }
         });

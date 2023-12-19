@@ -16,6 +16,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.task4.DataModels.RidesRespons;
 import com.example.task4.DataModels.Status;
 import com.example.task4.R;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.squareup.picasso.Picasso;
 
 import java.util.List;
@@ -105,6 +106,7 @@ public class RunningRequestAdapter extends RecyclerView.Adapter<RunningRequestAd
                 holder.btn_next.setVisibility(View.GONE);
                 holder.btn_assign.setVisibility(View.VISIBLE);
                 holder.btn_reject.setVisibility(View.VISIBLE);
+                holder.fab.setVisibility(View.GONE);
             }
             if (dataList.get(position).status == 3) {
                 holder.btn.setText(Status.reversedServices.get(dataList.get(position).status));
@@ -115,6 +117,7 @@ public class RunningRequestAdapter extends RecyclerView.Adapter<RunningRequestAd
                 holder.btn_assign.setVisibility(View.GONE);
                 holder.btn_reject.setVisibility(View.GONE);
                 holder.btn_next.setVisibility(View.VISIBLE);
+                holder.fab.setVisibility(View.VISIBLE);
 
 
 
@@ -165,6 +168,7 @@ public class RunningRequestAdapter extends RecyclerView.Adapter<RunningRequestAd
         void onAssignClick(int position);
         void onNextClick(int position);
         void oncancelClick(int position);
+        void onChatclick(int position);
     }
 
     class CustomViewHolder extends RecyclerView.ViewHolder {
@@ -173,6 +177,7 @@ public class RunningRequestAdapter extends RecyclerView.Adapter<RunningRequestAd
 
         TextView txt_name, txt_requestid, txt_servicetype, txt_pickup, txt_dropoff, txt_date, txt_time, txt_price, txt_driver;
         Button btn,btn_next;
+        FloatingActionButton fab;
         private ImageView coverImage, btn_assign,btn_reject;
 
 
@@ -194,6 +199,7 @@ public class RunningRequestAdapter extends RecyclerView.Adapter<RunningRequestAd
             btn = mView.findViewById(R.id.btn_rv);
             txt_driver = mView.findViewById(R.id.txt_driver_rr);
             btn_next = mView.findViewById(R.id.btn_next_rr);
+            fab = mView.findViewById(R.id.fab_send);
             btn_assign.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
@@ -223,6 +229,15 @@ public class RunningRequestAdapter extends RecyclerView.Adapter<RunningRequestAd
 
                 }
             });
+            fab.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    int position = getAdapterPosition();
+
+                    clickListener.onChatclick(position);
+                }
+            });
+
         }
     }
 }

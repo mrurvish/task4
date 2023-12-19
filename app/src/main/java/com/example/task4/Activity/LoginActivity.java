@@ -1,9 +1,11 @@
 package com.example.task4.Activity;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.os.Bundle;
+
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -18,6 +20,9 @@ import com.example.task4.Preference.SharedPreferencesManager;
 import com.example.task4.Network.ApiPath;
 import com.example.task4.Network.RetrofitClient;
 import com.example.task4.R;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -28,7 +33,7 @@ public class LoginActivity extends AppCompatActivity {
     EditText email,password;
 
     SharedPreferencesManager manager;
-
+    String token;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -36,6 +41,25 @@ public class LoginActivity extends AppCompatActivity {
        login_btn= findViewById(R.id.btn_login);
         email= findViewById(R.id.txt_email);
         password =findViewById(R.id.txt_password);
+
+        FirebaseMessaging.getInstance().getToken()
+                .addOnCompleteListener(new OnCompleteListener<String>() {
+                    @Override
+                    public void onComplete(@NonNull Task<String> task) {
+                        if (!task.isSuccessful()) {
+                            Log.w("token", "Fetching FCM registration token failed", task.getException());
+                            return;
+                        }
+
+                        // Get new FCM registration token
+                       token = task.getResult();
+
+                        // Log and toast
+                       // String msg = getString(R.string.msg_token_fmt, token);
+                        Log.d("token", token);
+                        //Toast.makeText(LoginActivity.this, token, Toast.LENGTH_SHORT).show();
+                    }
+                });
         login_btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -55,7 +79,7 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void checkUser() {
-        LoginParameter parameter = new LoginParameter(email.getText().toString(),password.getText().toString());
+        LoginParameter parameter = new LoginParameter(email.getText().toString(),password.getText().toString(),token);
         ApiPath path = RetrofitClient.getRetrofitInstance().create(ApiPath.class);
 
         Call<Login> call = path.getUser(parameter);

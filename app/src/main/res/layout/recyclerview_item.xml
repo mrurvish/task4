@@ -16,6 +16,20 @@
         android:layout_height="wrap_content"
         android:padding="10dp">
 
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/chat_confirm_ride"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            android:visibility="gone"
+            app:backgroundTint="#EFE398"
+            app:fabCustomSize="36dp"
+            app:fabSize="mini"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:maxImageSize="18dp"
+            app:srcCompat="@android:drawable/stat_notify_chat" />
+
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -33,7 +47,7 @@
                 android:textSize="18sp" />
 
             <com.google.android.material.imageview.ShapeableImageView
-                android:id="@+id/profile_pic_rv"
+                android:id="@+id/profile_pic_user"
                 android:layout_width="116dp"
                 android:layout_height="129dp"
 
@@ -54,7 +68,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="5dp"
                 android:layout_marginBottom="2dp"
-                android:layout_toEndOf="@+id/profile_pic_rv"
+                android:layout_toEndOf="@+id/profile_pic_user"
                 android:src="@drawable/baseline_account_circle_24" />
 
             <TextView
@@ -73,7 +87,7 @@
                 android:id="@+id/imageView3"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@+id/profile_pic_rv"
+                android:layout_below="@+id/profile_pic_user"
                 android:layout_alignParentStart="true"
                 android:layout_marginTop="3dp"
                 app:srcCompat="@drawable/pickup_location" />
@@ -84,7 +98,7 @@
                 android:layout_height="wrap_content"
 
 
-                android:layout_below="@+id/profile_pic_rv"
+                android:layout_below="@+id/profile_pic_user"
                 android:layout_alignTop="@id/imageView3"
                 android:layout_alignBottom="@id/imageView3"
 
@@ -115,7 +129,7 @@
                 android:layout_height="wrap_content"
                 android:layout_below="@+id/textView7"
                 android:layout_marginTop="5dp"
-                android:layout_toEndOf="@+id/profile_pic_rv"
+                android:layout_toEndOf="@+id/profile_pic_user"
                 android:src="@drawable/baseline_calendar_month_24" />
 
             <TextView
@@ -135,7 +149,7 @@
                 android:layout_height="wrap_content"
                 android:layout_below="@+id/textView10"
                 android:layout_marginTop="5dp"
-                android:layout_toEndOf="@+id/profile_pic_rv"
+                android:layout_toEndOf="@+id/profile_pic_user"
                 android:src="@drawable/baseline_access_time_24" />
 
             <TextView
@@ -155,7 +169,7 @@
                 android:layout_height="24dp"
                 android:layout_below="@+id/textView16"
                 android:layout_marginTop="5dp"
-                android:layout_toEndOf="@+id/profile_pic_rv"
+                android:layout_toEndOf="@+id/profile_pic_user"
                 android:src="@drawable/assigncar" />
 
             <TextView

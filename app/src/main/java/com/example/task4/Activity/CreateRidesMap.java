@@ -123,7 +123,7 @@ public class CreateRidesMap extends AppCompatActivity implements OnMapReadyCallb
     @Override
     public void onMapReady(@NonNull GoogleMap googleMap) {
         googlemap = googleMap;
-        Toast.makeText(this, "map is ready", Toast.LENGTH_SHORT).show();
+
         if (checkpermissions()) {
             getdevicelocation();
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -189,7 +189,7 @@ public class CreateRidesMap extends AppCompatActivity implements OnMapReadyCallb
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 // Permission granted, proceed to get the current location.
                 //permission_result = true;
-                Toast.makeText(this, "permission is granted", Toast.LENGTH_SHORT).show();
+                //Toast.makeText(this, "permission is granted", Toast.LENGTH_SHORT).show();
                 checkpermissions();
 
             } else {

@@ -11,6 +11,7 @@ public class Login implements Serializable {
     @SerializedName("token")
     public String token;
 
+
     public Admin getAdmin() {
         return admin;
     }

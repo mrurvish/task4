@@ -88,8 +88,7 @@ public class CreateRides extends AppCompatActivity {
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(CreateRides.this,HomeActivity.class);
-                startActivity(intent);
+                onBackPressed();
                 finish();
             }
         });
@@ -150,7 +149,7 @@ btn_clear.setOnClickListener(new View.OnClickListener() {
                 }
                 else {
 
-                    Toast.makeText(CreateRides.this, "dd", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(CreateRides.this, "User not Found...!", Toast.LENGTH_SHORT).show();
                 }
 
 
@@ -178,7 +177,7 @@ btn_clear.setOnClickListener(new View.OnClickListener() {
             btn_next.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    Toast.makeText(CreateRides.this, "clicked", Toast.LENGTH_SHORT).show();
+
                     if(user.getEmail()!=null) {
                         Intent intent = new Intent(CreateRides.this, CreateRidesMap.class);
                         intent.putExtra("user", user);
@@ -253,7 +252,7 @@ btn_clear.setOnClickListener(new View.OnClickListener() {
     @Override
     protected void onStop() {
         super.onStop();
-        Toast.makeText(CreateRides.this, "succesful", Toast.LENGTH_SHORT).show();
+        //Toast.makeText(CreateRides.this, "succesful", Toast.LENGTH_SHORT).show();
         tvemail.setText("");
         tvname.setText("");
         tvnum.setText("");

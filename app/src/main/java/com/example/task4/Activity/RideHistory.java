@@ -75,8 +75,7 @@ public class RideHistory extends AppCompatActivity implements BottomsheetDialoug
             @Override
             public void onClick(View view) {
 
-                Intent intent = new Intent(RideHistory.this, HomeActivity.class);
-                startActivity(intent);
+                onBackPressed();
                 finish();
             }
         });

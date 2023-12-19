@@ -9,11 +9,13 @@ public class LoginParameter implements Serializable {
     private String email;
     @SerializedName("password")
     private String password;
-
+    @SerializedName("deviceToken")
+    public String devicetoken;
     //constructor
-    public LoginParameter(String email, String password) {
+    public LoginParameter(String email, String password,String devicetoken) {
         this.email = email;
         this.password = password;
+        this.devicetoken = devicetoken;
     }
 
     // Getter Methods

@@ -9,13 +9,14 @@ import android.location.Address;
 import android.location.Geocoder;
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
 
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
@@ -70,12 +71,7 @@ public class FullscreenDialoug extends DialogFragment  {
 
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
 
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
     public static final String TAG = "Dialog";
     private Toolbar toolbar;
     FloatingActionButton btn_add_stop;
@@ -417,15 +413,17 @@ public class FullscreenDialoug extends DialogFragment  {
     call.enqueue(new Callback<List<Settings>>() {
         @Override
         public void onResponse(Call<List<Settings>> call, Response<List<Settings>> response) {
-            settings = response.body().get(0);
-            CreatePref prefSettings = new CreatePref(requireActivity(),"hello");
-            prefSettings.setString("setting",settings);
+            if (response.isSuccessful()) {
+                settings = response.body().get(0);
+                CreatePref prefSettings = new CreatePref(requireActivity(), "hello");
+                prefSettings.setString("setting", settings);
+            }
             if(!pref.getString("editbox").isEmpty())
             {
                 relodeview();
             }
 
-            Toast.makeText(requireActivity(), "success", Toast.LENGTH_SHORT).show();
+
         }
 
         @Override
@@ -468,7 +466,7 @@ public class FullscreenDialoug extends DialogFragment  {
             waypoint_array[i] = waypointlist.get(i).getText().toString();
         }
 
-        Toast.makeText(requireActivity(), "getting routes", Toast.LENGTH_SHORT).show();
+        Toast.makeText(requireActivity(), "getting route....", Toast.LENGTH_SHORT).show();
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl("https://maps.googleapis.com/")
                 .addConverterFactory(GsonConverterFactory.create())

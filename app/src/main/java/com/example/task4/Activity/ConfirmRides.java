@@ -24,12 +24,14 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.task4.Adapter.CreateChat;
 import com.example.task4.Adapter.CustomAdapter;
 import com.example.task4.DataModels.AllVehicals;
 import com.example.task4.DataModels.DriverDetails;
 import com.example.task4.DataModels.RidesRespons;
 import com.example.task4.Fragment.AssignDialoug;
 import com.example.task4.Fragment.BottomSheetFilters;
+import com.example.task4.Fragment.ChatDialoug;
 import com.example.task4.Fragment.RideDialoug;
 import com.example.task4.Interface.AssignDialougListner;
 import com.example.task4.Interface.BottomsheetDialougListner;
@@ -122,9 +124,7 @@ public class ConfirmRides extends AppCompatActivity implements BottomsheetDialou
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
-                        Intent intent = new Intent(ConfirmRides.this,HomeActivity.class);
-                        startActivity(intent);
+                        onBackPressed();
                         finish();
             }
         });
@@ -235,7 +235,7 @@ public class ConfirmRides extends AppCompatActivity implements BottomsheetDialou
                         String json = args[0].toString();
                         Gson gson = new Gson();
                         RidesRespons.Ride rideData = gson.fromJson(json, RidesRespons.Ride.class);
-                        if (searchtext.isEmpty() && servicetype.isEmpty() && status.isEmpty() && to.isEmpty() && from.isEmpty()) {
+                        if (checkfilters()) {
                             ridelist = adapter.removeRide(rideData);
                         } else {
                             filteredlist = adapter.removeRide(rideData);
@@ -447,12 +447,30 @@ public class ConfirmRides extends AppCompatActivity implements BottomsheetDialou
                             public void onCancelclick(int position) {
                                 cancelRide(position);
                             }
+
+                            @Override
+                            public void onChatclick(int position) {
+                                ChatDialoug chatDialoug = new ChatDialoug();
+                                chatDialoug.show(getSupportFragmentManager(),"");
+                                if (checkfilters()) {
+                                   chatDialoug.setRide(ridelist.get(position),0);
+
+
+                                }else {
+                                    chatDialoug.setRide(filteredlist.get(position),0);
+
+                                }
+
+                            }
                         });
 
                     } else {
                         adapter.filterlist(ridelist);
                         adapter.notifyDataSetChanged();
                     }
+                }
+                else{
+                    Toast.makeText(ConfirmRides.this, "No Rides Found...!", Toast.LENGTH_SHORT).show();
                 }
             }
 

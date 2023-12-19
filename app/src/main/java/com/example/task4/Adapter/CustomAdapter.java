@@ -17,6 +17,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.task4.DataModels.RidesRespons;
 import com.example.task4.DataModels.Status;
 import com.example.task4.R;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.squareup.picasso.Picasso;
 
 import java.util.List;
@@ -113,21 +114,25 @@ public class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.CustomView
             holder.btn.setText(Status.reversedServices.get(dataList.get(position).status));
             ColorStateList colorStateList = ColorStateList.valueOf(ContextCompat.getColor(context,R.color.color3));
             holder.btn.setBackgroundTintList(colorStateList);
+            holder.fab.setVisibility(View.VISIBLE);
         }
         if (dataList.get(position).status == 4) {
             holder.btn.setText(Status.reversedServices.get(dataList.get(position).status));
             ColorStateList colorStateList = ColorStateList.valueOf(ContextCompat.getColor(context,R.color.color4));
             holder.btn.setBackgroundTintList(colorStateList);
+            holder.fab.setVisibility(View.VISIBLE);
         }
         if (dataList.get(position).status == 5) {
             holder.btn.setText(Status.reversedServices.get(dataList.get(position).status));
             ColorStateList colorStateList = ColorStateList.valueOf(ContextCompat.getColor(context,R.color.color5));
             holder.btn.setBackgroundTintList(colorStateList);
+            holder.fab.setVisibility(View.VISIBLE);
         }
         if (dataList.get(position).status == 6) {
             holder.btn.setText(Status.reversedServices.get(dataList.get(position).status));
             ColorStateList colorStateList = ColorStateList.valueOf(ContextCompat.getColor(context,R.color.color6));
             holder.btn.setBackgroundTintList(colorStateList);
+            holder.fab.setVisibility(View.VISIBLE);
         }
         String path = "http://192.168.0.215:3000/" + dataList.get(position).user.getProfile();
 
@@ -147,6 +152,7 @@ public class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.CustomView
 
         void onAssignClick(int position);
         void onCancelclick(int position);
+        void onChatclick(int position);
     }
 
     class CustomViewHolder extends RecyclerView.ViewHolder {
@@ -156,6 +162,7 @@ public class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.CustomView
         TextView txt_name, txt_requestid, txt_servicetype, txt_pickup, txt_dropoff, txt_date, txt_time, txt_price,txt_driver;
         Button btn;
         private ImageView coverImage, btn_assign,btn_cancel;
+        FloatingActionButton fab;
 
 
         CustomViewHolder(View itemView) {
@@ -168,12 +175,13 @@ public class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.CustomView
             txt_servicetype = mView.findViewById(R.id.txt_servicetype_rv);
             txt_pickup = mView.findViewById(R.id.txt_pickup_rv);
             txt_dropoff = mView.findViewById(R.id.txt_dropoff_rv);
-            coverImage = mView.findViewById(R.id.profile_pic_rv);
+            coverImage = mView.findViewById(R.id.profile_pic_user);
             txt_date = mView.findViewById(R.id.txt_date_rv);
             txt_time = mView.findViewById(R.id.txt_time_rv);
             txt_driver=mView.findViewById(R.id.txt_driver_rv);
             btn_assign = mView.findViewById(R.id.img_assign_rv);
             btn = mView.findViewById(R.id.btn_rv);
+            fab = mView.findViewById(R.id.chat_confirm_ride);
             btn_cancel = mView.findViewById(R.id.img_reject_rv);
             btn_assign.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -206,6 +214,17 @@ public class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.CustomView
                     }
                 }
             });
+            fab.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    int position = getAdapterPosition();
+                    if (position != RecyclerView.NO_POSITION) {
+                        // Call a method or perform an action based on the button click
+                        clickListener.onChatclick(position);
+                    }
+                }
+            });
+
         }
     }
 }

@@ -143,7 +143,7 @@ public class RideHistoryAdapter extends RecyclerView.Adapter<RideHistoryAdapter.
             txt_servicetype = mView.findViewById(R.id.txt_servicetype_rv);
             txt_pickup = mView.findViewById(R.id.txt_pickup_rv);
             txt_dropoff = mView.findViewById(R.id.txt_dropoff_rv);
-            coverImage = mView.findViewById(R.id.profile_pic_rv);
+            coverImage = mView.findViewById(R.id.profile_pic_user);
             txt_date = mView.findViewById(R.id.txt_date_rv);
             txt_time = mView.findViewById(R.id.txt_time_rv);
             txt_driver=mView.findViewById(R.id.txt_driver_rv);

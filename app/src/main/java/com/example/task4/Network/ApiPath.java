@@ -1,5 +1,6 @@
 package com.example.task4.Network;
 
+import com.example.task4.DataModels.AllUsers;
 import com.example.task4.DataModels.AllVehicals;
 import com.example.task4.DataModels.CityVihicals;
 import com.example.task4.DataModels.Country;
@@ -20,11 +21,19 @@ import com.example.task4.DataModels.UserPhone;
 
 import java.util.List;
 
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
 import retrofit2.Call;
 import retrofit2.http.Body;
+import retrofit2.http.DELETE;
+import retrofit2.http.Field;
+import retrofit2.http.FormUrlEncoded;
 import retrofit2.http.GET;
 import retrofit2.http.Header;
+import retrofit2.http.Multipart;
+import retrofit2.http.PATCH;
 import retrofit2.http.POST;
+import retrofit2.http.Part;
 import retrofit2.http.Path;
 import retrofit2.http.Query;
 
@@ -48,6 +57,12 @@ public interface ApiPath {
     Call<RideBody.Response> bookRide( @Body RideBody ridebody,@Header("Authorization") String token);
     @POST("/card")
     Call<UserCards> getcards(@Header("Authorization") String token,@Body UserCards.Id id);
+    @POST("/card/add")
+    Call<UserCards> setcard(@Header("Authorization") String token,@Body UserCards.Id id);
+    @POST("/card/delete")
+    Call<UserCards> deletcard(@Header("Authorization") String token,@Body UserCards.Id id);
+    @POST("/card/changeDefault")
+    Call<UserCards> updatedefaultcard(@Header("Authorization") String token,@Body UserCards.Id id);
     @GET("/ride")
     Call<RidesRespons> searchrides(@Header("Authorization") String token,@Query("page") String pagenum,@Query("search") String search,@Query("vehicleType") String vihical,@Query("rideDateFrom") String dateFrom,@Query("rideDateTo") String dateto,@Query("status") String status,@Query("rideStatus") String ridestatus);
     @GET("/ride")
@@ -62,5 +77,29 @@ public interface ApiPath {
     Call<Payment> deductPayment(@Header("Authorization") String token,@Body Payment.PaymentBody body);
     @POST("/ride/feedback")
     Call<Feedback.FeedbackResponce> submitFeedback(@Header("Authorization") String token,@Body Feedback body);
+    @GET("/user")
+    Call<AllUsers> getAllusers(@Header("Authorization") String token,@Query("page") String pagenum,@Query("search") String search);
+
+    @Multipart
+    @PATCH("user/edit")
+    Call<User> updateUser(
+            @Header("Authorization") String authorization,
+            @Part("id") RequestBody id,
+            @Part("name") RequestBody name,
+            @Part("email") RequestBody email,
+            @Part("phoneCode") RequestBody phoneCode,
+            @Part("phone") RequestBody phone,
+            @Part MultipartBody.Part part
+    );
+    @Multipart
+    @POST("/user/add")
+    Call<User> addUser(@Header("Authorization") String authorization,
+                       @Part("name") RequestBody name,
+                       @Part("email") RequestBody email,
+                       @Part("phoneCode") RequestBody phoneCode,
+                       @Part("phone") RequestBody phone,
+                       @Part MultipartBody.Part part);
+    @DELETE("/user/delete/{userid}")
+    Call<User> deleteUser(@Path("userid") String userid,@Header("Authorization") String token);
 
 }

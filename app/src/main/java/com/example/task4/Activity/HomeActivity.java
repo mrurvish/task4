@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
 import android.Manifest;
@@ -14,6 +15,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.ExpandableListView;
 
+import com.example.task4.Adapter.CreateChat;
 import com.example.task4.Preference.SharedPreferencesManager;
 import com.example.task4.Adapter.ExpantablelistviewAdapter;
 import com.example.task4.DataModels.Menu;
@@ -78,10 +80,20 @@ public class HomeActivity extends AppCompatActivity {
             public boolean onGroupClick(ExpandableListView parent, View v, int groupPosition, long id) {
                 //  String po = title.get(groupPosition);
                 // Toast.makeText(MainActivity.this, po, Toast.LENGTH_SHORT).show();
+                Menu menu = new Menu();
+                String click = menu.title.get(groupPosition);
+                if (click.equals("Users"))
+                {
+                    intent = new Intent(HomeActivity.this,UserActivity.class);
+                    startActivity(intent);
+                }
                 return false;
             }
         });
         checkLocationPermission();
+       /* CreateChat chat = new CreateChat();
+        chat.seendMessage("123656");
+        chat.receiveMessage("123656");*/
     }
 
     private void navigate(String po) {
@@ -141,18 +153,34 @@ public class HomeActivity extends AppCompatActivity {
 
 
     }*/
-  private boolean checkLocationPermission() {
+  private void checkLocationPermission() {
+      String[] permissions = {
+              Manifest.permission.ACCESS_FINE_LOCATION,
+              Manifest.permission.READ_EXTERNAL_STORAGE,
+              Manifest.permission.WRITE_EXTERNAL_STORAGE,
+              Manifest.permission.MANAGE_EXTERNAL_STORAGE
+      };
       if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-          // Permission is not granted, request it.
-          ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, MY_PERMISSIONS_REQUEST_LOCATION);
-          return false;
+          // Request location permission
+          ActivityCompat.requestPermissions(this, permissions, MY_PERMISSIONS_REQUEST_LOCATION);
       }
-      if(ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED&&ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED){
-      // Permission is already granted.
-          ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE,Manifest.permission.WRITE_EXTERNAL_STORAGE}, MY_PERMISSIONS_REQUEST_STORAGE);
+
+      // Check if storage permissions are not granted
+      if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED
+              || ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+          // Request storage permissions
+          ActivityCompat.requestPermissions(this,permissions, MY_PERMISSIONS_REQUEST_STORAGE);
       }
-      return true;
   }
 
-
+    @Override
+    public void onBackPressed() {
+        if (drawerLayout != null && drawerLayout.isDrawerOpen(GravityCompat.START)) {
+            // Close the drawer if it's open
+            drawerLayout.closeDrawer(GravityCompat.START);
+        } else {
+            // Handle the back press as you normally would
+            super.onBackPressed();
+        }
+    }
 }

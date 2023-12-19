@@ -15,10 +15,11 @@
 
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
-            style="@style/Texi"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
+            android:layout_height="wrap_content"
+            android:background="?attr/colorPrimary"
+            android:minHeight="?attr/actionBarSize"
+            android:theme="?attr/actionBarTheme" >
             <ImageView
                 android:layout_width="50dp"
                 android:layout_height="50dp"
@@ -31,11 +32,15 @@
                 android:src="@drawable/taxi" />
         </androidx.appcompat.widget.Toolbar>
 
+
+
         <FrameLayout
             android:layout_width="match_parent"
 
             android:layout_height="match_parent"
-            android:id="@+id/fragment_container"/>
+            android:id="@+id/fragment_container">
+
+        </FrameLayout>
     </LinearLayout>
 
     <!-- this the navigation view which draws and shows the navigation drawer -->
@@ -43,15 +48,14 @@
 
     <ExpandableListView
         android:id="@+id/lv"
+        style="@style/back"
         android:layout_width="match_parent"
+
         android:layout_height="match_parent"
 
-        android:background="#FEFFF4"
-        android:groupIndicator="@android:color/transparent"
-
-        android:indicatorEnd="@dimen/group_indicator_padding_right"
         android:layout_gravity="start"
-        />
+        android:groupIndicator="@android:color/transparent"
+        android:indicatorEnd="@dimen/group_indicator_padding_right" />
 
 
 </androidx.drawerlayout.widget.DrawerLayout>

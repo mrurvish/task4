@@ -9,6 +9,16 @@ public class UserCards {
     private List<Card> cards;
     @SerializedName("defaultCard")
     private String defaultCard;
+    @SerializedName("msg")
+    private String msg;
+
+    public String getMsg() {
+        return msg;
+    }
+
+    public void setMsg(String msg) {
+        this.msg = msg;
+    }
 
     public List<Card> getCards() {
         return cards;
@@ -28,9 +38,23 @@ public class UserCards {
 public static class Id{
         @SerializedName("id")
     public String id;
+        @SerializedName("token")
+        public String token;
+    @SerializedName("cardID")
+    public String cardid;
+        @SerializedName("userID")
+        public String userid;
 
-    public String getId() {
-        return id;
+    public void setCardid(String cardid) {
+        this.cardid = cardid;
+    }
+
+    public void setUserid(String userid) {
+        this.userid = userid;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
     }
 
     public void setId(String id) {
